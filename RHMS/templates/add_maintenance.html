@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-content active">
+    <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <div class="card-header">
+            <h2>
+                {% if edit_mode %}
+                    🛠️ Update Request #MNT-{{ form.instance.id }}
+                {% else %}
+                    🔧 New Maintenance Request
+                {% endif %}
+            </h2>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="font-weight:600;">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <small style="color: #e74c3c; display: block; margin-top: 5px;">{{ field.errors.0 }}</small>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary">
+                        {% if edit_mode %}Save Changes{% else %}Submit Request{% endif %}
+                    </button>
+                    <a href="{% url 'maintenance' %}" class="btn btn-secondary" style="text-decoration:none;">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

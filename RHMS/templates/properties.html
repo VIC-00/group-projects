@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div id="propertiesPage" class="page-content active">
+    <div class="quick-actions">
+        <a href="{% url 'add_property' %}" class="btn btn-primary" style="text-decoration: none;">+ Add New Property</a>
+        <a href="{% url 'import_properties' %}" class="btn btn-secondary" style="text-decoration: none;">Import Properties</a>
+        <a href="{% url 'export_properties_csv' %}" class="btn btn-secondary" style="text-decoration: none;">Export List</a>
+    </div>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Properties</h3>
+            <div class="stat-value">{{ total_properties }}</div>
+            <div class="stat-subtitle">Under management</div>
+        </div>
+        <div class="stat-card">
+            <h3>Occupied Units</h3>
+            <div class="stat-value">{{ occupied_units }}</div>
+            <div class="stat-subtitle">Active leases</div>
+        </div>
+        <div class="stat-card">
+            <h3>Vacant Units</h3>
+            <div class="stat-value">{{ vacant_units }}</div>
+            <div class="stat-subtitle">Available for rent</div>
+        </div>
+        <div class="stat-card">
+            <h3>Total Value</h3>
+            <div class="stat-value">KES {{ total_portfolio_value }}</div>
+            <div class="stat-subtitle">Portfolio value</div>
+        </div>
+    </div>
+
+    <div class="card">
+       <div class="card-header">
+            <h2>All Properties</h2>
+            <form method="GET" action="{% url 'properties' %}" style="display:flex; gap:10px;">
+                <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Search properties..." 
+                    style="padding:7px 12px; border:1px solid var(--input-border); border-radius:6px; width:230px;">
+                <button type="submit" class="btn btn-primary btn-small">Search</button>
+                {% if query %}
+                    <a href="{% url 'properties' %}" class="btn btn-secondary btn-small" style="text-decoration:none;">Clear</a>
+                {% endif %}
+            </form>
+        </div>
+        <div class="card-body" style="padding:0;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property Name</th>
+                        <th>Location</th>
+                        <th>Units</th>
+                        <th>Occupied</th>
+                        <th>Vacant</th>
+                        <th>Monthly Revenue</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for property in properties %}
+                    <tr>
+                        <td><strong>{{ property.name }}</strong></td>
+                        <td>{{ property.location }}</td>
+                        <td>{{ property.total_units }}</td>
+                        <td>{{ property.tenant_set.count }}</td>
+                        <td>{{ property.vacant_units }}</td>
+                        <td>KES {{ property.monthly_revenue }}</td>
+                        <td class="actions-cell">
+                            <a href="{% url 'property_detail' property.pk %}" class="btn btn-secondary btn-small">Details</a>
+                            <a href="{% url 'edit_property' property.pk %}" class="btn btn-primary btn-small">Edit</a>
+                            <a href="{% url 'delete_property' property.pk %}" class="btn btn-danger btn-small">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

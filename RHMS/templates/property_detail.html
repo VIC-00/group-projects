@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-content active">
+    <div class="quick-actions">
+        <a href="{% url 'properties' %}" class="btn btn-secondary">← Back to Properties</a>
+        <a href="{% url 'edit_property' property.pk %}" class="btn btn-primary">Edit This Property</a>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Units</h3>
+            <div class="stat-value">{{ property.total_units }}</div>
+            <div class="stat-subtitle">Total capacity</div>
+        </div>
+        <div class="stat-card">
+            <h3>Current Occupancy</h3>
+            <div class="stat-value">{{ tenants.count }}</div>
+            <div class="stat-subtitle">Active tenants</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h2>Tenants at {{ property.name }}</h2></div>
+        <div class="card-body" style="padding:0;">
+            <table>
+                <thead>
+                    <tr><th>Tenant Name</th><th>Unit</th><th>Phone</th><th>Balance</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                    {% for tenant in tenants %}
+                    <tr>
+                        <td><strong>{{ tenant.user.get_full_name }}</strong></td>
+                        <td>{{ tenant.unit_number }}</td>
+                        <td>{{ tenant.user.phone_number }}</td>
+                        <td>KES {{ tenant.balance }}</td>
+                        <td><a href="{% url 'edit_tenant' tenant.pk %}" class="btn btn-secondary btn-small">View Tenant</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" style="text-align:center; padding:20px;">No tenants are currently assigned to this property.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
