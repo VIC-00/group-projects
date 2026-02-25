@@ -1,5 +1,19 @@
+<<<<<<< HEAD
 venv/
 db.sqlite3
 __pycache__/
 *.pyc
 .DS_Store
+=======
+# Python environment
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Database (keep your local data private)
+db.sqlite3
+
+# OS specific files
+.DS_Store
+>>>>>>> 67c377f (Initial upload of RHMS project)

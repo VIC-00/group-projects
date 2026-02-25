@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div id="maintenancePage" class="page-content active">
+    <div class="quick-actions">
+        <a href="{% url 'add_maintenance' %}" class="btn btn-primary" style="text-decoration: none;">+ New Request</a>
+        <a href="{% url 'export_maintenance_csv' %}" class="btn btn-secondary" style="text-decoration: none;">Export Report</a>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card"><h3>Pending Requests</h3><div class="stat-value">{{ open_count }}</div><div class="stat-subtitle">Awaiting action</div></div>
+        <div class="stat-card"><h3>In Progress</h3><div class="stat-value">{{ progress_count }}</div><div class="stat-subtitle">Being resolved</div></div>
+        <div class="stat-card"><h3>Completed</h3><div class="stat-value">{{ completed_count }}</div><div class="stat-subtitle">This month</div></div>
+        <div class="stat-card"><h3>Avg Resolution</h3><div class="stat-value">{{ avg_resolution|default:"---" }}</div><div class="stat-subtitle">Average time</div></div>
+    </div>
+
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <h2 style="margin: 0;">Maintenance Requests</h2>
+            
+            <form method="GET" action="{% url 'maintenance' %}" style="display:flex; gap:10px; align-items: center; flex-wrap: wrap;">
+                <select name="status" onchange="this.form.submit()" style="padding:7px 12px; border:1px solid var(--input-border); border-radius:6px;">
+                    <option value="all" {% if selected_status == 'all' %}selected{% endif %}>All Requests</option>
+                    <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                    <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Completed</option>
+                </select>
+                
+                {% if selected_status and selected_status != 'all' %}
+                    <a href="{% url 'maintenance' %}" class="btn btn-secondary btn-small" style="text-decoration: none;">Clear</a>
+                {% endif %}
+            </form>
+        </div>
+        <div class="card-body" style="padding:0; overflow-x: auto;">
+            <table style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Tenant</th>
+                        <th>Property & Unit</th>
+                        <th>Issue</th>
+                        <th>Priority</th>
+                        <th>Date Reported</th>
+                        <th>Status</th>
+                        <th class="actions-cell">Actions</th> 
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in maintenance_requests %}
+                    <tr>
+                        <td>#MNT-{{ request.id }}</td>
+                        <td>{{ request.tenant.user.get_full_name }}</td>
+                        <td>{{ request.tenant.assigned_property.name }} - {{ request.tenant.unit_number }}</td>
+                        <td>{{ request.issue }}</td>
+                        <td>
+                            <span class="badge {% if request.priority == 'high' %}badge-danger{% elif request.priority == 'medium' %}badge-warning{% else %}badge-success{% endif %}">
+                                {{ request.priority|title }}
+                            </span>
+                        </td>
+                        <td>{{ request.date_reported|date:"M d, Y" }}</td>
+                        <td>
+                            <span class="badge {% if request.status == 'completed' %}badge-success{% elif request.status == 'in_progress' %}badge-info{% elif request.status == 'assigned' %}badge-primary{% else %}badge-warning{% endif %}">
+                                {{ request.status|title }}
+                            </span>
+                        </td>
+                        <td class="actions-cell">
+                            <a href="{% url 'edit_maintenance' request.pk %}" class="btn btn-primary btn-small">Update</a>
+                            <a href="{% url 'delete_maintenance' request.pk %}" class="btn btn-danger btn-small">Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8" style="text-align:center; padding:20px;">No maintenance requests found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

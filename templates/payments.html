@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div id="paymentsPage" class="page-content active">
+    <div class="quick-actions">
+        <a href="{% url 'record_payment' %}" class="btn btn-primary">+ Record Payment</a>
+        <a href="{% url 'export_payments_csv' %}" class="btn btn-secondary" style="text-decoration: none;">Export Report</a>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card"><h3>Total Collected</h3><div class="stat-value">KES {{ total_collected }}</div><div class="stat-subtitle">Confirmed payments</div></div>
+        <div class="stat-card"><h3>Pending Payments</h3><div class="stat-value">KES {{ total_pending }}</div><div class="stat-subtitle">Awaiting confirmation</div></div>
+        <div class="stat-card"><h3>Collection Rate</h3><div class="stat-value">{{ collection_rate }}%</div><div class="stat-subtitle">Target vs Actual</div></div>
+        <div class="stat-card"><h3>Expected Total</h3><div class="stat-value">KES {{ expected_total }}</div><div class="stat-subtitle">This month</div></div>
+    </div>
+
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <h2 style="margin: 0;">Payment History</h2>
+            
+            <form method="GET" action="{% url 'payments' %}" style="display:flex; gap:10px; align-items: center; flex-wrap: wrap;">
+                <select name="status" onchange="this.form.submit()" style="padding:7px 12px; border:1px solid var(--input-border); border-radius:6px;">
+                    <option value="all" {% if selected_status == 'all' %}selected{% endif %}>All Payments</option>
+                    <option value="confirmed" {% if selected_status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                    <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="failed" {% if selected_status == 'failed' %}selected{% endif %}>Failed</option>
+                </select>
+                
+                <input type="month" name="month" value="{{ selected_month }}" onchange="this.form.submit()" 
+                       style="padding:7px 12px; border:1px solid var(--input-border); border-radius:6px;">
+                
+                {% if selected_status != 'all' or selected_month %}
+                    <a href="{% url 'payments' %}" class="btn btn-secondary btn-small" style="text-decoration: none;">Clear</a>
+                {% endif %}
+            </form>
+        </div>
+        <div class="card-body" style="padding:0; overflow-x: auto;">
+            <table style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Tenant</th>
+                        <th>Property</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th class="actions-cell">Actions</th> 
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                    <tr>
+                        <td>{{ payment.transaction_id|default:"---" }}</td>
+                        <td>{{ payment.tenant.user.get_full_name }}</td>
+                        <td>{{ payment.tenant.assigned_property.name }}</td>
+                        <td>KES {{ payment.amount|floatformat:0 }}</td>
+                        <td>{{ payment.method }}</td>
+                        <td>{{ payment.date|date:"M d, Y" }}</td>
+                        <td>
+                            {% if payment.status == 'confirmed' %}
+                                <span class="badge badge-success">Confirmed</span>
+                            {% elif payment.status == 'pending' %}
+                                <span class="badge badge-warning">Pending</span>
+                            {% else %}
+                                <span class="badge badge-danger">Failed</span>
+                            {% endif %}
+                        </td>
+                        <td class="actions-cell">
+                            <a href="{% url 'generate_invoice' payment.pk %}" class="btn btn-secondary btn-small">Invoice</a>
+                            <a href="{% url 'edit_payment' payment.pk %}" class="btn btn-primary btn-small">Edit</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8" style="text-align:center; padding:20px;">No payments recorded yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

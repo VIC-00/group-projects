@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div id="reportsPage" class="page-content active">
+    
+    <div class="quick-actions" style="justify-content: space-between; align-items: center; display: flex; flex-wrap: wrap;">
+        <div>
+            <h2 style="margin: 0;">Reports & Intelligence</h2>
+            <div class="stat-subtitle" style="margin-top: 5px;">Financial and operational data for your portfolio.</div>
+        </div>
+        <a href="{% url 'export_tenants_csv' %}" class="btn btn-secondary" style="text-decoration:none;">Full Tenant List (CSV)</a>
+    </div>
+
+    <div class="stats-grid" style="margin-bottom: 30px;">
+        
+        <div class="stat-card">
+            <h3>Revenue & Collection</h3>
+            <div class="stat-value">KES {{ total_confirmed|floatformat:0 }}</div>
+            <div class="stat-subtitle">Monthly Collected</div>
+            <div style="margin-top: 15px; display: flex; gap: 8px;">
+                <button class="btn btn-primary btn-small" onclick="toggleReport('revTable')">View Table</button>
+                <a href="{% url 'export_revenue_csv' %}" class="btn btn-secondary btn-small">Export CSV</a>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <h3>Tenant Arrears</h3>
+            <div class="stat-value" style="color: #e74c3c;">KES {{ total_arrears|floatformat:0 }}</div>
+            <div class="stat-subtitle">Total Outstanding</div>
+            <div style="margin-top: 15px; display: flex; gap: 8px;">
+                <button class="btn btn-primary btn-small" onclick="toggleReport('arrTable')">View Debtors</button>
+                <a href="{% url 'export_arrears_csv' %}" class="btn btn-secondary btn-small">Export CSV</a>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <h3>Occupancy Analysis</h3>
+            <div class="stat-value">Status</div>
+            <div class="stat-subtitle">Track vacant vs occupied units</div>
+            <div style="margin-top: 15px; display: flex; gap: 8px;">
+                <button class="btn btn-primary btn-small" onclick="toggleReport('occTable')">View Details</button>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <h3>Maintenance Audit</h3>
+            <div class="stat-value">{{ open_tasks }} / {{ completed_tasks }}</div>
+            <div class="stat-subtitle">Pending / Resolved</div>
+            <div style="margin-top: 15px; display: flex; gap: 8px;">
+                <a href="{% url 'maintenance' %}" class="btn btn-primary btn-small">Go to Repairs</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="revTable" class="card report-detail" style="display:none; margin-top: 20px;">
+        <div class="card-header">
+            <h2 style="margin: 0;">Revenue Statement</h2>
+        </div>
+        <div class="card-body" style="padding:0; overflow-x:auto;">
+            <table style="width: 100%;">
+                <thead>
+                    <tr><th>Property</th><th>Target Revenue</th><th>Actual Collected</th><th>Shortfall</th></tr>
+                </thead>
+                <tbody>
+                    {% for item in prop_data %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>KES {{ item.target|floatformat:0 }}</td>
+                        <td><span class="badge badge-success">KES {{ item.collected|floatformat:0 }}</span></td>
+                        <td><span class="badge badge-danger">KES {{ item.shortfall|floatformat:0 }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="arrTable" class="card report-detail" style="display:none; margin-top: 20px;">
+        <div class="card-header">
+            <h2 style="margin: 0;">Overdue Accounts</h2>
+        </div>
+        <div class="card-body" style="padding:0; overflow-x:auto;">
+            <table style="width: 100%;">
+                <thead>
+                    <tr><th>Tenant</th><th>Property</th><th>Phone</th><th>Balance</th></tr>
+                </thead>
+                <tbody>
+                    {% for t in overdue_tenants %}
+                    <tr>
+                        <td>{{ t.user.get_full_name }}</td>
+                        <td>{{ t.assigned_property.name }}</td>
+                        <td>{{ t.user.phone_number }}</td>
+                        <td><span class="badge badge-danger">KES {{ t.balance|floatformat:0 }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" style="text-align:center; padding:20px;">No arrears at this time.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="occTable" class="card report-detail" style="display:none; margin-top: 20px;">
+        <div class="card-header">
+            <h2 style="margin: 0;">Occupancy Rates</h2>
+        </div>
+        <div class="card-body" style="padding:0; overflow-x:auto;">
+            <table style="width: 100%;">
+                <thead>
+                    <tr><th>Property</th><th>Units</th><th>Vacant</th><th>Usage</th></tr>
+                </thead>
+                <tbody>
+                    {% for item in prop_data %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.total_units }}</td>
+                        <td>{{ item.vacant }}</td>
+                        <td>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <div style="flex:1; height:8px; background:var(--border-light); border-radius:4px; overflow:hidden; border: 1px solid var(--input-border);">
+                                    <div style="height: 100%; background: #3498db; --progress: {{ item.occupancy|default:0|floatformat:0 }}%; width: var(--progress);"></div>
+                                </div>
+                                <span style="font-size: 13px;">{{ item.occupancy|floatformat:0 }}%</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleReport(id) {
+    document.querySelectorAll('.report-detail').forEach(el => el.style.display = 'none');
+    const target = document.getElementById(id);
+    target.style.display = 'block';
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+{% endblock %}
