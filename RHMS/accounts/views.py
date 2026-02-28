@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout 
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth.hashers import check_password
 from django.db.models import Sum, Count, Q, Avg, F
 from .models import Property, Tenant, Payment, MaintenanceRequest, CustomUser, SentMessage
 from .forms import PropertyForm, AddTenantFullForm, UserSignupForm, PaymentForm, MaintenanceForm
@@ -12,6 +13,7 @@ from django.http import HttpResponse
 from django.core.mail import send_mail
 from django.utils import timezone
 from datetime import timedelta
+from django.db import IntegrityError
 
 # --- 1. MASTER AUTHENTICATION (Login & Signup) ---
 def login_view(request):
@@ -19,54 +21,44 @@ def login_view(request):
         return redirect('dashboard')
 
     if request.method == 'POST':
-        # --- HANDLE SIGNUP ---
+        # --- FLEXIBLE SIGNUP ---
         if 'signup_submit' in request.POST:
             form = UserSignupForm(request.POST)
             if form.is_valid():
-                # Extract clean data (matching the 'name' in HTML)
-                email = form.cleaned_data.get('email')
+                # We pull whatever they typed in the signup box
+                # In your HTML this is likely named 'email' or 'username'
+                raw_id = form.cleaned_data.get('email') or request.POST.get('username')
                 
-                # Check for existing accounts
-                if CustomUser.objects.filter(Q(username=email) | Q(email=email)).exists():
-                    messages.error(request, "An account with this email already exists.")
-                    return render(request, 'login.html', {'form': form, 'show_signup': True})
-
-                # Create the user manually to satisfy NOT NULL constraint
                 user = form.save(commit=False)
-                user.username = email  # satisfy database requirement
-                user.email = email
+                user.username = raw_id # Pushes the exact text to the Admin Username column
+                user.email = raw_id    # Pushes the exact text to the Admin Email column
                 user.role = 'landlord'
-                user.save()
+                user.save() 
                 
                 login(request, user)
-                messages.success(request, f"Welcome, {user.first_name}!")
                 return redirect('dashboard')
-            else:
-                for field, error_list in form.errors.items():
-                    for error in error_list:
-                        messages.error(request, f"{field.title()}: {error}")
-                return render(request, 'login.html', {'form': form, 'show_signup': True})
-        
-        # --- HANDLE LOGIN ---
+
+        # --- SMART DUAL LOGIN ---
         else:
+            # Grabs whatever was typed in the 'Sign In' box
             identifier = request.POST.get('username') 
             pass_word = request.POST.get('password')
-            
-            try:
-                user_obj = CustomUser.objects.get(email=identifier)
-                username_to_auth = user_obj.username
-            except CustomUser.DoesNotExist:
-                username_to_auth = identifier
 
-            user = authenticate(request, username=username_to_auth, password=pass_word)
-            
-            if user is not None:
-                login(request, user)
-                return redirect('dashboard')
+            # Search for a match in EITHER the Username OR Email columns
+            user_obj = CustomUser.objects.filter(Q(username=identifier) | Q(email=identifier)).first()
+
+            if user_obj:
+                # Use the official username found in the database to authenticate
+                user = authenticate(request, username=user_obj.username, password=pass_word)
+                if user is not None:
+                    login(request, user)
+                    return redirect('dashboard')
+                else:
+                    messages.error(request, 'Incorrect password.')
             else:
-                messages.error(request, 'Invalid email or password.')
+                messages.error(request, 'User not found. Check your details.')
 
-    return render(request, 'login.html')
+    return render(request, 'login.html', {'form': UserSignupForm()})
 
 def logout_view(request):
     logout(request)
