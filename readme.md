@@ -31,8 +31,6 @@ Bash
 git clone <your-repository-link>
 cd RHMS
 2. Set Up a Virtual Environment
-This creates a local "safe box" for the project's tools so they don't interfere with other apps.
-
 On Ubuntu/macOS:
 
 Bash
@@ -44,8 +42,6 @@ Bash
 python -m venv venv
 venv\Scripts\activate
 3. Install Dependencies
-Run this command to install Django and all necessary styling/form libraries at once:
-
 Bash
 pip install -r requirements.txt
 🗄️ Phase 3: Database Initialization (Crucial)
@@ -66,8 +62,6 @@ python manage.py createsuperuser
 (Follow the prompts to set your username, email, and password).
 
 2. Assign the Landlord Role
-By default, new accounts are generic. You must assign yourself the Landlord role to see the dashboard:
-
 Run the server: python manage.py runserver.
 
 Go to http://127.0.0.1:8000/admin and log in with your superuser account.
@@ -75,8 +69,6 @@ Go to http://127.0.0.1:8000/admin and log in with your superuser account.
 Under Users, find your account, change the Role dropdown to landlord, and click Save.
 
 🛡️ Phase 5: Security & Validation (Test Mode vs Pro)
-For easier testing, some security rules are often commented out in settings.py. Before moving to production, follow these steps:
-
 1. Password Strength
 Find AUTH_PASSWORD_VALIDATORS in renthouse/settings.py. Uncomment the lines inside the list (remove the #) to prevent users from picking weak passwords like "12345".
 
@@ -87,7 +79,6 @@ AUTH_PASSWORD_VALIDATORS = [
     { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
     { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
 ]
-
 📂 Project Structure
 renthouse/: Project configuration (settings and main URLs).
 
@@ -104,7 +95,7 @@ static/: CSS, JavaScript, and Image assets.
 templates/: HTML files for the dashboard and authentication screens.
 
 🔍 Pro-Tip: Database Inspection
-Since the system runs on SQLite, you can view the raw tables and financial records directly using DB Browser for SQLite. This allows you to see exactly how data is stored in the accounts_customuser and accounts_payment tables.
+Since the system runs on SQLite, you can view the raw tables directly using DB Browser for SQLite.
 
 Installation:
 
