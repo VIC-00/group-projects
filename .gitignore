@@ -1,19 +1,22 @@
-<<<<<<< HEAD
-venv/
-db.sqlite3
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
-.DS_Store
-=======
-# Python environment
+*.py[cod]
+*$py.class
+
+# Virtual Environments
 venv/
 env/
-__pycache__/
-*.pyc
+ENV/
 
-# Database (keep your local data private)
+# Database
 db.sqlite3
+db.sqlite3-journal
 
-# OS specific files
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# OS specific
 .DS_Store
->>>>>>> 67c377f (Initial upload of RHMS project)
+.thumbs

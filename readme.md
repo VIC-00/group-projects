@@ -1,116 +1,113 @@
 Rental Home Management System (RHMS)
-        A robust, Django-based web application designed for landlords to manage properties, track tenants, record payments (M-Pesa, Cash, Bank), and oversee maintenance requests from a centralized dashboard.
+A robust, Django-based web application designed for landlords to manage properties, track tenants, record payments (M-Pesa, Cash, Bank), and oversee maintenance requests from a centralized dashboard.
 
-🚀 Features
-        Consolidated Management: Single-app architecture (accounts) for easier maintenance.
+🚀 Key Features
+Consolidated Management: Single-app architecture (accounts) for easier maintenance and faster performance.
 
-        Role-Based Access: Specialized views for Landlords (Tenant Portal and Staff Portal planned).
+Smart Authentication: Support for a dual-identifier login system where users can sign in using either their Username or their Email address.
 
-         Financial Tracking: Automated balance adjustments when payments are recorded or edited.
+Financial Tracking: Automated balance adjustments that update instantly when payments are recorded, edited, or deleted.
 
-        Visual Analytics: Interactive charts for revenue tracking and maintenance status.
+Visual Analytics: Interactive charts (via Chart.js) for tracking monthly revenue and maintenance request status.
 
-        Dark/Light Mode: User-controlled theme persistence.
+Exportable Reports: One-click CSV downloads for revenue summaries and tenant arrears lists.
 
-        Exportable Reports: One-click CSV downloads for revenue and arrears.
+Dark/Light Mode: User-controlled theme persistence across sessions.
 
-🛠️ Prerequisites
-        Before you begin, ensure you have the following installed:
+🛠️ Phase 1: Prerequisites
+Before you begin, ensure you have the following installed on your machine:
 
-        Python 3.10+
+Python 3.10+: The core language used for the backend.
 
-        pip (Python package manager)
+pip: The Python package manager.
 
-        Virtualenv (Recommended)
+Virtualenv: Recommended for keeping dependencies isolated.
 
-💻 Installation & Setup
-        1. Clone the Project
-        Bash
-            git clone <your-repository-link>
-            cd RHMS
-        2. Set Up a Virtual Environment
-        On Ubuntu/macOS:
-
-        Bash
-            python3 -m venv venv
-            source venv/bin/activate
-        On Windows:
-
-        Bash
-            python -m venv venv
-            venv\Scripts\activate
-        3. Install Dependencies
-        Bash
-            pip install django django-crispy-forms crispy-bootstrap5
-        4. Database Initialization (Crucial)
-        Since this project uses a consolidated model structure, you must initialize the database to create the tables.
-
-        Bash
-            python manage.py makemigrations accounts
-            python manage.py migrate
-        5. Create a Landlord Account
-        Create a Superuser:
-
-        Bash
-            python manage.py createsuperuser
-        Assign Landlord Role:
-
-        Run the server: 
-
-            python manage.py runserver
-
-
-        Go to http://127.0.0.1:8000/admin
-
-        Under Users, find your account and change the Role to landlord.
-
-
-        Automatic Dependency Installation:
-Instead of installing packages one by one, run:
+💻 Phase 2: Installation & Setup (Step-by-Step)
+1. Clone the Project
+Open your terminal and download the repository:
 
 Bash
-    pip install -r requirements.txt
+git clone <your-repository-link>
+cd RHMS
+2. Set Up a Virtual Environment
+This creates a local "safe box" for the project's tools so they don't interfere with other apps.
 
+On Ubuntu/macOS:
 
-    🔍 Database Inspection (Optional)
-        Since the system runs on SQLite, you can view the raw tables, user data, and financial records directly using DB Browser for SQLite.
+Bash
+python3 -m venv venv
+source venv/activate
+On Windows:
 
-        What it does: Allows you to open the db.sqlite3 file to see exactly how data is stored in the accounts_customuser, accounts_property, and accounts_payment tables.
+Bash
+python -m venv venv
+venv\Scripts\activate
+3. Install Dependencies
+Run this command to install Django and all necessary styling/form libraries at once:
 
-        Installation:
+Bash
+pip install -r requirements.txt
+🗄️ Phase 3: Database Initialization (Crucial)
+Since this project uses a custom user model and consolidated structure, you must initialize the database to create the required tables.
 
-        Ubuntu: sudo apt install sqlitebrowser
+Bash
+# Prepare the database instructions
+python manage.py makemigrations accounts
 
-        Windows/macOS: Download from sqlitebrowser.org
+# Build the actual tables
+python manage.py migrate
+🔑 Phase 4: Accessing the Dashboard
+1. Create a Landlord Account
+First, create a "Superuser" (Master Admin):
 
+Bash
+python manage.py createsuperuser
+(Follow the prompts to set your username, email, and password).
+
+2. Assign the Landlord Role
+By default, new accounts are generic. You must assign yourself the Landlord role to see the dashboard:
+
+Run the server: python manage.py runserver.
+
+Go to http://127.0.0.1:8000/admin and log in with your superuser account.
+
+Under Users, find your account, change the Role dropdown to landlord, and click Save.
+
+🛡️ Phase 5: Security & Validation (Test Mode vs Pro)
+For easier testing, some security rules are often commented out in settings.py. Before moving to production, follow these steps:
+
+1. Password Strength
+Find AUTH_PASSWORD_VALIDATORS in renthouse/settings.py. Uncomment the lines inside the list (remove the #) to prevent users from picking weak passwords like "12345".
+
+Python
+AUTH_PASSWORD_VALIDATORS = [
+    { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
+]
 
 📂 Project Structure
-        renthouse/: Project configuration (settings, main URLs).
+renthouse/: Project configuration (settings and main URLs).
 
-        accounts/: The core application containing all models, views, and logic.
+accounts/: The core application containing all models, views, and logic.
 
-        models.py: Database schema for Users, Properties, Tenants, and Payments.
+models.py: Database schema for Users, Properties, Tenants, and Payments.
 
-        views.py: Backend logic and data processing.
+views.py: Backend logic and data processing.
 
-        forms.py: Clean, styled input forms for all data entry.
+forms.py: Clean, styled input forms for all data entry.
 
-        static/: CSS, JavaScript, and Image assets.
+static/: CSS, JavaScript, and Image assets.
 
-        templates/: HTML files for the dashboard and authentication.
+templates/: HTML files for the dashboard and authentication screens.
 
-📝 Important Notes for Beginners
-        Migrations: Every time you change models.py, you must run makemigrations and migrate.
+🔍 Pro-Tip: Database Inspection
+Since the system runs on SQLite, you can view the raw tables and financial records directly using DB Browser for SQLite. This allows you to see exactly how data is stored in the accounts_customuser and accounts_payment tables.
 
-        Database: This project uses SQLite3 by default, which is a file named db.sqlite3 in your root folder. Deleting this file resets all data.
+Installation:
 
-        Security: Ensure @login_required decorators are used on all sensitive views to prevent unauthorized access.
+Ubuntu: sudo apt install sqlitebrowser
 
-🛠️ Built With
-        Framework: Django 6.0+
-
-        Frontend: HTML5, CSS3, JavaScript (Vanilla)
-
-        Charts: Chart.js
-
-        Icons: FontAwesome / Emoji-based
+Windows/macOS: Download from sqlitebrowser.org
