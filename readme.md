@@ -1,6 +1,6 @@
 # 🏠 Rental Home Management System (RHMS)
 
-**RHMS** is a robust, Django-based **Property Management ERP** designed to bridge the gap between landlords, tenants, and maintenance staff. From tracking **M-Pesa payments** to managing **repair tickets**, RHMS centralizes the entire rental lifecycle into a single, intuitive interface.
+**RHMS** is a robust, Django-based **Property Management ERP** designed to bridge the gap between landlords, tenants, and maintenance staff. From tracking **payments** to managing **repair tickets**, RHMS centralizes the entire rental lifecycle into a single, intuitive interface.
 
 ---
 
