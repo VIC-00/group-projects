@@ -1,151 +1,164 @@
-🏠 Rental Home Management System (RHMS)
-A robust, Django-based Property Management ERP designed to bridge the gap between landlords, tenants, and maintenance staff. From tracking M-Pesa payments to managing repair tickets, RHMS centralizes the entire rental lifecycle.
+# 🏠 Rental Home Management System (RHMS)
 
-🚀 Key Features
-Triple-Role System: Custom dashboards for Landlords (Analytics), Tenants (Payments/Issues), and Maintenance Staff (Task Tracking).
+**RHMS** is a robust, Django-based **Property Management ERP** designed to bridge the gap between landlords, tenants, and maintenance staff. From tracking **M-Pesa payments** to managing **repair tickets**, RHMS centralizes the entire rental lifecycle into a single, intuitive interface.
 
-Smart Authentication: Dual-identifier login (Username or Email) with a Security Guard that forces tenants to change temporary passwords upon first login.
+---
 
-Financial Integrity: Automated balance engine that recalculates tenant debt instantly when payments are confirmed, edited, or deleted.
+## 🚀 Key Features
 
-Interactive Analytics: Real-time data visualization using Chart.js for revenue trends and maintenance distribution.
+- **Triple-Role System**  
+  Custom dashboards tailored for **Landlords** (analytics & oversight), **Tenants** (payments & issues), and **Maintenance Staff** (task tracking).
 
-One-Click Compliance: Exportable CSV reports for revenue, arrears, and maintenance history.
+- **Smart Authentication**  
+  Dual-identifier login (Username or Email) with a built-in **Security Guard** that forces tenants to update temporary passwords upon first login.
 
-🛠️ Tech Stack
-Backend: Python / Django 6.0
+- **Financial Integrity**  
+  An automated balance engine that recalculates tenant debt instantly whenever payments are confirmed, edited, or deleted.
 
-Database: SQLite (Development) / PostgreSQL (Production Ready)
+- **Interactive Analytics**  
+  Real-time data visualization using **Chart.js** to track revenue trends and maintenance distribution.
 
-UI/UX: HTML5, Vanilla JavaScript, CSS3 (Custom variables), Bootstrap 5 via Crispy Forms.
+- **One-Click Compliance**  
+  Exportable **CSV reports** for revenue summaries, tenant arrears, and maintenance history.
 
-Charts: Chart.js for revenue and maintenance analytics.
+---
 
-🛠️ Step 1: Prerequisites
-Ensure you have the following installed:
+## 🛠️ Tech Stack
 
-Python 3.10+
+- **Backend:** Python 3.10+ / Django 6.0  
+- **Database:** SQLite (Development) / PostgreSQL (Production-ready)  
+- **UI/UX:** HTML5, Vanilla JavaScript, CSS3 (custom variables), Bootstrap 5 via Crispy Forms  
+- **Charts:** Chart.js  
 
-pip (Python Package Manager)
+---
 
-Git
+## 🛠️ Step 1: Prerequisites
 
-💻 Step 2: Installation & Setup
-1. Clone & Enter the Project
-Bash
-git clone <your-repository-link>
-cd RHMS
-1. Set Up a Virtual Environment
-macOS/Linux:
+Ensure the following are installed:
 
-Bash
-python3 -m venv venv
-source venv/activate
-Windows:
+- Python 3.10+
+- pip
+- Git
 
-Bash
-python -m venv venv
-venv\Scripts\activate
-3. Install Dependencies
-Bash
-pip install -r requirements.txt
-🗄️ Step 3: Database & Superuser
-Since RHMS uses a Custom User Model, the order of migrations is crucial.
+---
 
-Bash
-# 1. Create migration files
-python manage.py makemigrations accounts
+## 💻 Step 2: Installation & Setup
 
-# 2. Apply migrations to the database
-python manage.py migrate
+### 1. Clone & Enter the Project
 
-# 3. Create your Master Admin (Landlord)
-First, create a Superuser (Master Admin):
+    git clone <your-repository-link>
+    cd RHMS
 
-python manage.py createsuperuser
+### 2. Set Up a Virtual Environment
+
+**macOS / Linux**
+
+    python3 -m venv venv
+    source venv/bin/activate
+
+**Windows**
+
+    python -m venv venv
+    venv\Scripts\activate
+
+### 3. Install Dependencies
+
+    pip install -r requirements.txt
+
+---
+
+## 🗄️ Step 3: Database & Superuser Initialization
+
+> **Important:** RHMS uses a **Custom User Model**. The order below is critical.
+
+### 1. Generate & Apply Migrations
+
+    python manage.py makemigrations accounts
+    python manage.py migrate
+
+### 2. Create the Master Admin (Landlord)
+
+    python manage.py createsuperuser
 
 Follow the prompts to set your username, email, and password.
 
-Assign the Landlord Role
+### 3. Assign the Landlord Role
 
-Run the server:
+    python manage.py runserver
 
-python manage.py runserver
+Open your browser and go to:
 
-Go to:
+    http://127.0.0.1:8000/admin
 
-http://127.0.0.1:8000/admin
+- Log in with your superuser account  
+- Under **Users**, locate your account  
+- Change **Role** to **Landlord**  
+- Click **Save**
 
-Log in with your superuser account.
+---
 
-Under Users, find your account.
+## 🛡️ Step 4: Security & Validation
 
-Change the Role dropdown to landlord.
+### Password Strength
 
-Click Save.
+Enable strong password validation in `renthouse/settings.py`:
 
-🛡️ Step 4: Security & Validation (Test Mode vs Pro)
-1. Password Strength
+    AUTH_PASSWORD_VALIDATORS = [
+        { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
+        { 'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
+        { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
+        { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
+    ]
 
-Find AUTH_PASSWORD_VALIDATORS in renthouse/settings.py. Uncomment the lines inside the list (remove the #) to prevent users from picking weak passwords like 12345.
+---
 
-AUTH_PASSWORD_VALIDATORS = [
-    { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
-    { 'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
-    { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
-    { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
-]
+## 🔑 Step 5: User Workflows
 
-🔑 Step 5 User Workflows (How to use RHMS)
-🏢 For Landlords (The Manager)
-Login: Access the dashboard at http://127.0.0.1:8000/.
+### 🏢 For Landlords (Manager)
 
-Add Property: Navigate to Properties and add your first building.
+- Dashboard:  
+      
+      http://127.0.0.1:8000/
 
-Onboard Tenants: You can manually add a tenant (their phone number becomes their temporary password) or approve "Pending" signups from the Tenants page.
+- Add properties, units, and rent targets  
+- Approve or manually onboard tenants  
+- Confirm tenant payments to auto-update balances  
 
-Verify Payments: When tenants report payments, review them in the Payments tab and click Confirm to automatically deduct the amount from their balance.
+### 🏠 For Tenants (Resident)
 
-🏠 For Tenants (The Resident)
-Self-Registration: Tenants can sign up and select their building/unit. They remain "Pending" until the landlord approves them.
+- Self-register and wait for landlord approval  
+- Change password on first login  
+- Report maintenance issues  
+- Submit formal move-out notices  
 
-First Login: If added by a landlord, the tenant logs in with their phone number and is immediately prompted to set a private password.
+### 🛠️ For Maintenance Staff (Technician)
 
-Report Issues: Tenants can submit maintenance requests with a description of the problem.
+- Register and select a **Target Landlord**  
+- View assigned tasks  
+- Update task status: Assigned → In Progress → Completed  
 
-Move-Out Notice: Tenants can initiate a formal "Notice to Vacate" through their dashboard.
+---
 
-🛠️ For Maintenance Staff (The Technician)
-Application: Staff sign up and select a "Target Landlord" to work for.
+## 📁 Project Structure
 
-Task Management: Once approved by the landlord in Manage Staff, technicians receive assigned tasks.
+    renthouse/      # Core project configuration
+    accounts/       # Core application logic
+     ├── models.py  # Users, properties, tenants, payments
+     ├── views.py   # Business logic and role handling
+     ├── forms.py   # Styled Django ModelForms
+    templates/      # HTML templates
+    static/         # styles.css and main.js
 
-Status Updates: Technicians can update tasks from "Assigned" to "In Progress" or "Completed."
+---
 
-📁 Project Structure
-renthouse/: Core project settings and URL routing.
+## 🔍 Pro-Tip: Database Inspection
 
-accounts/: The heart of the app.
+RHMS uses SQLite by default.
 
-models.py: Defines the relationship between Landlords, Properties, Tenants, and Payments.
+**Ubuntu**
 
-views.py: Contains the logic for financial calculations and role-based redirects.
+    sudo apt install sqlitebrowser
 
-forms.py: Django ModelForms styled with CSS variables for theme support.
+**Windows / macOS**
 
-templates/: HTML structures with specific folders for maintenance and tenants.
-
-static/: Unified styles.css and main.js handling the Dark Mode engine.
-
-🔍 Pro-Tip: Database Inspection
-
-Since the system runs on SQLite, you can view the raw tables directly using DB Browser for SQLite.
-
-Installation
-
-Ubuntu
-
-sudo apt install sqlitebrowser
-
-Windows/macOS
-Download from: https://sqlitebrowser.org
+    https://sqlitebrowser.org
