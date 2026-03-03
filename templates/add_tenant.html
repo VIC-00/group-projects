@@ -2,25 +2,86 @@
 
 {% block content %}
 <div class="page-content active">
-    <div class="card" style="max-width: 600px; margin: 0 auto;">
-        <div class="card-header">
-            <h2>👤 Add New Tenant</h2>
+    <div class="card shadow-sm" style="max-width: 600px; margin: 0 auto; border-radius: 12px; border: none; background: var(--bg-primary);">
+        <div class="card-header" style="background: var(--bg-secondary); padding: 20px; border-bottom: 1px solid var(--border-color);">
+            <h2 style="margin: 0; font-family: 'Playfair Display', serif; font-size: 1.5rem;">👤 Add New Tenant</h2>
+            <p style="margin: 5px 0 0; font-size: 0.85rem; color: var(--text-secondary);">Create a profile and login credentials for your new resident.</p>
         </div>
-        <div class="card-body">
+        
+        <div class="card-body" style="padding: 30px;">
             <form method="POST">
                 {% csrf_token %}
+                
                 {% for field in form %}
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label style="display:block; margin-bottom:5px; font-weight:600;">{{ field.label }}</label>
-                    <div class="auth-field">{{ field }}</div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display:block; margin-bottom:8px; font-weight:600; font-size: 0.9rem; color: var(--text-primary);">
+                        {{ field.label }}
+                        {% if field.field.required %}<span style="color: #e74c3c;">*</span>{% endif %}
+                    </label>
+                    <div class="custom-form-field">
+                        {{ field }}
+                    </div>
+                    {% if field.errors %}
+                        <div style="color: #e74c3c; font-size: 0.75rem; margin-top: 5px;">{{ field.errors|striptags }}</div>
+                    {% endif %}
                 </div>
                 {% endfor %}
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button type="submit" class="btn btn-primary">Save Tenant</button>
-                    <a href="{% url 'tenants' %}" class="btn btn-secondary" style="text-decoration:none;">Cancel</a>
+
+                <div style="background: rgba(52, 152, 219, 0.1); border-left: 4px solid var(--accent-color); padding: 15px; border-radius: 4px; margin-bottom: 25px;">
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">
+                        <strong>Quick Note:</strong> The tenant's <strong>phone number</strong> will be set as their initial password. Advise them to change it upon their first login.
+                    </p>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 10px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 2; padding: 12px; font-weight: 700;">Save Tenant</button>
+                    <a href="{% url 'tenants' %}" class="btn btn-secondary" style="flex: 1; text-decoration:none; text-align: center; padding: 12px;">Cancel</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<style>
+    /* 1. General Input & Select Styling */
+    .custom-form-field input, 
+    .custom-form-field select, 
+    .custom-form-field textarea {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-secondary) !important; /* Force the dark background */
+        color: var(--text-primary) !important; /* Force the white text */
+        font-family: inherit;
+        font-size: 0.95rem;
+        box-sizing: border-box;
+        transition: border-color 0.2s;
+        appearance: none; /* Removes default browser styling */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+
+    /* 2. SPECIFIC FIX: Styling the options inside the dropdown */
+    .custom-form-field select option {
+        background-color: #1a1a1a; /* Hardcoded dark color to ensure it works */
+        color: white;
+        padding: 10px;
+    }
+
+    /* 3. Add a custom arrow so it doesn't look like a flat box */
+    .custom-form-field select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23ffffff' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: calc(100% - 15px) center;
+        padding-right: 40px;
+    }
+
+    .custom-form-field input:focus, 
+    .custom-form-field select:focus {
+        border-color: var(--accent-color);
+        outline: none;
+        background: #242424 !important; /* Slightly lighter on focus */
+    }
+</style>
 {% endblock %}

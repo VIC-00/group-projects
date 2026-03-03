@@ -2,60 +2,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <script>
+    // Check localStorage and apply the theme BEFORE the page renders
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    </script>
+        <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Property Hub - All eggs in one basket</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        /* Sidebar Collapse Styles */
+        #appWrapper.collapsed .sidebar { width: 70px; }
+        #appWrapper.collapsed .sidebar .logo h2, 
+        #appWrapper.collapsed .sidebar .logo p,
+        #appWrapper.collapsed .sidebar .nav-item span:not(.icon) { display: none; }
+        #appWrapper.collapsed .sidebar .nav-item { justify-content: center; padding: 12px 0; }
+        #appWrapper.collapsed .main-content { margin-left: 70px; }
+        .sidebar-toggle-btn {
+            background: none; border: none; color: var(--text-primary);
+            font-size: 20px; cursor: pointer; padding: 5px 10px; border-radius: 6px;
+            margin-right: 15px; display: flex; align-items: center; justify-content: center;
+        }
+        .sidebar-toggle-btn:hover { background: var(--table-hover); }
+        
+        /* Modal visibility fix */
+        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); }
+    </style>
 </head>
 <body>
 
-    <div id="appWrapper" class="visible">
-
+    <div id="appWrapper" class="visible"> 
         <div class="sidebar">
             <div class="logo">
                 <h2>🏠 PropertyHub</h2>
                 <p>All eggs in one basket</p>
             </div>
 
-            <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                Dashboard
-            </a>
-            
-            <a href="{% url 'properties' %}" class="nav-item {% if request.resolver_match.url_name == 'properties' %}active{% endif %}">
-                Properties
-            </a>
-            
-            <a href="{% url 'tenants' %}" class="nav-item {% if request.resolver_match.url_name == 'tenants' %}active{% endif %}">
-                Tenants
-            </a>
+            {% if request.user.role == 'landlord' %}
+                <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <span class="icon">📊</span> <span>Home</span>
+                </a>
+                <a href="{% url 'properties' %}" class="nav-item {% if request.resolver_match.url_name == 'properties' %}active{% endif %}">
+                    <span class="icon">🏢</span> <span>Properties</span>
+                </a>
+                <a href="{% url 'tenants' %}" class="nav-item {% if request.resolver_match.url_name == 'tenants' %}active{% endif %}">
+                    <span class="icon">👥</span> <span>Tenants</span>
+                </a>
+                <a href="{% url 'payments' %}" class="nav-item {% if request.resolver_match.url_name == 'payments' %}active{% endif %}">
+                    <span class="icon">💸</span> <span>Payments</span>
+                </a>
+                <a href="{% url 'maintenance' %}" class="nav-item {% if 'maintenance' in request.path and request.user.role == 'landlord' %}active{% endif %}">
+                    <span class="icon">🛠️</span> <span>Maintenance</span>
+                </a>
+                <a href="{% url 'reports' %}" class="nav-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+                    <span class="icon">📈</span> <span>Reports</span>
+                </a>
+                <a href="{% url 'settings' %}" class="nav-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                    <span class="icon">⚙️</span> <span>Settings</span>
+                </a>
 
-            <a href="{% url 'payments' %}" class="nav-item {% if request.resolver_match.url_name == 'payments' %}active{% endif %}">
-                Payments
-            </a>
-            
-            <a href="{% url 'maintenance' %}" class="nav-item {% if request.resolver_match.url_name == 'maintenance' %}active{% endif %}">
-                Maintenance
-            </a>
-            
-            <a href="{% url 'reports' %}" class="nav-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
-                Reports
-            </a>
-            
-            <a href="{% url 'settings' %}" class="nav-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
-                Settings
-            </a>
+            {% elif request.user.role == 'maintenance' %}
+                <a href="{% url 'maintenance_dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'maintenance_dashboard' %}active{% endif %}">
+                    <span class="icon">📋</span> <span>My Tasks</span>
+                </a>
+                <a href="{% url 'settings' %}" class="nav-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                    <span class="icon">⚙️</span> <span>Profile Settings</span>
+                </a>
+
+            {% elif request.user.role == 'tenant' %}
+                <a href="{% url 'tenant_dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'tenant_dashboard' %}active{% endif %}">
+                    <span class="icon">🏠</span> <span>Home</span>
+                </a>
+                <a href="{% url 'maintenance_history' %}" class="nav-item {% if request.resolver_match.url_name == 'maintenance_history' %}active{% endif %}">
+                    <span class="icon">🛠️</span> <span>Maintenance</span>
+                </a>
+                <a href="{% url 'payment_history' %}" class="nav-item {% if request.resolver_match.url_name == 'payment_history' %}active{% endif %}">
+                    <span class="icon">💰</span> <span>Payments</span>
+                </a>
+                <a href="{% url 'settings' %}" class="nav-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                    <span class="icon">⚙️</span> <span>Settings</span>
+                </a>
+            {% endif %}
 
             <a href="{% url 'logout' %}" style="text-decoration: none; margin-top: auto;">
                 <div class="nav-item" style="color:rgba(255,100,100,0.85); border-top: 1px solid rgba(255,255,255,0.08);">
-                    <span style="font-size:17px; margin-right: 12px;">🚪</span><span>Sign Out</span>
+                    <span class="icon">🚪</span> <span>Sign Out</span>
                 </div>
             </a>
         </div>
 
         <div class="main-content">
             <div class="top-bar">
-                <h1 id="pageTitle">Dashboard</h1>
+                <button id="sidebarToggle" class="sidebar-toggle-btn">☰</button>
+                <h1 id="pageTitle" style="margin: 0; font-size: 1.25rem;">
+                    {% if request.user.role == 'maintenance' %}Maintenance Portal{% else %}Dashboard{% endif %}
+                </h1>
+                
                 <div class="top-bar-right">
                     <button class="dark-mode-btn" id="darkModeBtn">
                         <span id="darkModeIcon">&#127769;</span>
@@ -64,132 +110,136 @@
                     <div class="user-info" id="profileDropdownBtn" style="cursor: pointer; position: relative; padding-right: 5px;">
                         <div>
                             <div class="user-name">{{ request.user.first_name|default:request.user.username|title }}</div>
-                            <div class="user-role">Administrator</div>
+                            <div class="user-role">{{ request.user.get_role_display }}</div>
                         </div>
                         <div class="user-avatar">{{ request.user.first_name|default:request.user.username|make_list|first|upper }}</div>
                         
-                        <div id="profileDropdownMenu" style="display: none; position: absolute; top: 120%; right: 0; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); min-width: 160px; z-index: 1000; overflow: hidden; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
-                            <a href="{% url 'settings' %}" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: var(--text-primary); text-decoration: none; font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--border-light); transition: background 0.2s;" onmouseover="this.style.background='var(--table-hover)'" onmouseout="this.style.background='transparent'">
-                                <span></span> Settings
-                            </a>
-                            <a href="{% url 'logout' %}" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: #e74c3c; text-decoration: none; font-size: 13px; font-weight: 600; transition: background 0.2s;" onmouseover="this.style.background='var(--table-hover)'" onmouseout="this.style.background='transparent'">
-                                <span></span> Sign Out
-                            </a>
+                        <div id="profileDropdownMenu" style="display: none; position: absolute; top: 120%; right: 0; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); min-width: 160px; z-index: 1000; overflow: hidden;">
+                            <a href="{% url 'settings' %}" style="display: block; padding: 12px 16px; color: var(--text-primary); text-decoration: none; font-size: 13px;">Settings</a>
+                            <a href="{% url 'logout' %}" style="display: block; padding: 12px 16px; color: #e74c3c; text-decoration: none; font-size: 13px;">Sign Out</a>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="content-area">
-
-{% if messages %}
-    <div id="django-messages-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999; width: 350px;">
-        {% for message in messages %}
-            <div class="auth-alert show {{ message.tags }}" 
-                 style="margin-bottom: 10px; border-radius: 8px; padding: 15px; 
-                        border-left: 6px solid #2ecc71; background: #ffffff; 
-                        color: #333; box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
-                        transition: all 0.5s ease-in-out;">
-                <span style="font-weight: 600;">{{ message }}</span>
-            </div>
-        {% endfor %}
-    </div>
-{% endif %}
-    
-                {% block content %}
-                {% endblock %}
-            </div>
-        </div>
-
-        <div id="massMessageModal" class="modal">
-    
-    <div class="modal-content" style="max-width: 750px; width: 90%; background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);"> 
-        
-        <div class="modal-header">
-            <h2 style="margin: 0;">📧 Send Broadcast</h2>
-            <button type="button" class="close-btn" id="closeModal">&times;</button>
-        </div>
-        
-        <form method="POST" action="{% url 'send_mass_message' %}">
-            {% csrf_token %}
-            <div class="modal-body">
-                
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label style="font-weight:600; display:block; margin-bottom:5px;">Recipient Group</label>
-                    <select name="recipient_group" id="recipientGroup" onchange="document.getElementById('specificTenantDiv').style.display = this.value === 'specific' ? 'block' : 'none';" style="padding:9px 12px; width:100%; border:1px solid var(--input-border); border-radius:6px; background:var(--input-bg); color:var(--text-primary);">
-                        <option value="all">All Tenants</option>
-                        <option value="overdue">Tenants with Arrears</option>
-                        <option value="specific">Specific Tenant</option>
-                    </select>
-                </div>
-
-                <div class="form-group" id="specificTenantDiv" style="display: none; margin-bottom: 15px;">
-                    <label style="font-weight:600; display:block; margin-bottom:5px;">Select Tenant</label>
-                    <select name="specific_tenant_id" style="padding:9px 12px; width:100%; border:1px solid var(--input-border); border-radius:6px; background:var(--input-bg); color:var(--text-primary);">
-                        <option value="">-- Choose a tenant --</option>
-                        {% for t in global_tenants %}
-                            <option value="{{ t.id }}">{{ t.user.get_full_name }} ({{ t.assigned_property.name }} - {{ t.unit_number }})</option>
+                {% if messages %}
+                    <div id="django-messages-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999; width: 350px;">
+                        {% for message in messages %}
+                            <div class="auth-alert show {{ message.tags }}" 
+                                 style="margin-bottom: 10px; border-radius: 8px; padding: 15px; background: #ffffff; color: #333; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-left: 6px solid #2ecc71;">
+                                <span style="font-weight: 600;">{{ message }}</span>
+                            </div>
                         {% endfor %}
-                    </select>
-                </div>
+                    </div>
+                {% endif %}
+    
+                {% block content %}{% endblock %}
+            </div>
+        </div>
 
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label style="font-weight:600; display:block; margin-bottom:5px;">Delivery Method</label>
-                    <div style="display: flex; gap: 20px; margin-top: 5px;">
-                        <div class="checkbox-group">
-                            <input type="checkbox" name="delivery_method" value="email" id="emailCheck" checked>
-                            <label for="emailCheck">Email</label>
+        {% if request.user.role == 'landlord' %}
+        <div id="massMessageModal" class="modal">
+            <div class="modal-content" style="max-width: 750px; width: 90%; background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); margin: 5% auto;"> 
+                <div class="modal-header" style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                    <h2 style="margin: 0;">📧 Send Broadcast</h2>
+                    <button type="button" class="close-btn" id="closeModal" style="background:none; border:none; font-size: 24px; cursor: pointer; color: var(--text-secondary);">&times;</button>
+                </div>
+                
+                <form method="POST" action="{% url 'send_mass_message' %}">
+                    {% csrf_token %}
+                    <div class="modal-body" style="padding: 20px;">
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="font-weight:600; display:block; margin-bottom:5px;">Recipient Group</label>
+                            <select name="recipient_group" id="recipientGroup" onchange="document.getElementById('specificTenantDiv').style.display = this.value === 'specific' ? 'block' : 'none';" style="padding:9px 12px; width:100%; border:1px solid var(--input-border); border-radius:6px; background:var(--input-bg); color:var(--text-primary);">
+                                <option value="all">All Tenants</option>
+                                <option value="overdue">Tenants with Arrears</option>
+                                <option value="specific">Specific Tenant</option>
+                            </select>
                         </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" name="delivery_method" value="sms" id="smsCheck">
-                            <label for="smsCheck">SMS</label>
+
+                        <div class="form-group" id="specificTenantDiv" style="display: none; margin-bottom: 15px;">
+                            <label style="font-weight:600; display:block; margin-bottom:5px;">Select Tenant</label>
+                            <select name="specific_tenant_id" style="padding:9px 12px; width:100%; border:1px solid var(--input-border); border-radius:6px; background:var(--input-bg); color:var(--text-primary);">
+                                <option value="">-- Choose a tenant --</option>
+                                {% for t in global_tenants %}
+                                    <option value="{{ t.id }}">{{ t.user.get_full_name }} ({{ t.assigned_property.name }} - {{ t.unit_number }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="font-weight:600; display:block; margin-bottom:5px;">Delivery Method</label>
+                            <div style="display: flex; gap: 20px; margin-top: 5px;">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" name="delivery_method" value="email" id="emailCheck" checked>
+                                    <label for="emailCheck">Email</label>
+                                </div>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" name="delivery_method" value="sms" id="smsCheck">
+                                    <label for="smsCheck">SMS</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="font-weight:600; display:block; margin-bottom:5px;">Subject</label>
+                            <input type="text" name="subject" required style="padding:9px 12px; width:100%; border:1px solid var(--input-border); border-radius:6px; background:var(--input-bg); color:var(--text-primary);" placeholder="Enter subject">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="font-weight:600; display:block; margin-bottom:5px;">Message Content</label>
+                            <textarea name="message_content" rows="5" required style="padding:9px 12px; width:100%; border:1px solid var(--input-border); border-radius:6px; background:var(--input-bg); color:var(--text-primary);" placeholder="Type your message here... You can use {tenant_name}"></textarea>
+                            <div style="font-size: 12.5px; color: var(--text-secondary); margin-top: 6px;">Variables: {tenant_name}</div>
                         </div>
                     </div>
-                </div>
-
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label style="font-weight:600; display:block; margin-bottom:5px;">Subject</label>
-                    <input type="text" name="subject" required style="padding:9px 12px; width:100%; border:1px solid var(--input-border); border-radius:6px; background:var(--input-bg); color:var(--text-primary);" placeholder="Enter subject">
-                </div>
-
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label style="font-weight:600; display:block; margin-bottom:5px;">Message Content</label>
-                    <textarea name="message_content" rows="5" required style="padding:9px 12px; width:100%; border:1px solid var(--input-border); border-radius:6px; background:var(--input-bg); color:var(--text-primary);" placeholder="Type your message here... You can use {tenant_name}"></textarea>
-                    <div style="font-size: 12.5px; color: var(--text-secondary); margin-top: 6px;">Variables: {tenant_name}</div>
-                </div>
-
+                    
+                    <div class="modal-footer" style="padding: 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Send Message</button>
+                    </div>
+                </form>
             </div>
-            
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
-                <button type="submit" class="btn btn-primary">Send Message</button>
-            </div>
-        </form>
+        </div>
+        {% endif %} 
+
     </div>
-</div>
-    </div>
+    
     <script src="{% static 'js/main.js' %}"></script>
     <script>
-    // Profile Dropdown Logic
     document.addEventListener('DOMContentLoaded', function() {
+        // Sidebar Toggle
+        const wrapper = document.getElementById('appWrapper');
+        const toggleBtn = document.getElementById('sidebarToggle');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => wrapper.classList.toggle('collapsed'));
+        }
+
+        // Profile Dropdown
         const profileBtn = document.getElementById('profileDropdownBtn');
         const profileMenu = document.getElementById('profileDropdownMenu');
-
         if (profileBtn && profileMenu) {
-            profileBtn.addEventListener('click', function(e) {
-                e.stopPropagation(); // Prevents the click from instantly closing the menu
-                const isVisible = profileMenu.style.display === 'block';
-                profileMenu.style.display = isVisible ? 'none' : 'block';
+            profileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block';
             });
+            document.addEventListener('click', () => profileMenu.style.display = 'none');
+        }
 
-            // Close the menu if the user clicks anywhere else on the page
-            document.addEventListener('click', function(e) {
-                if (!profileBtn.contains(e.target)) {
-                    profileMenu.style.display = 'none';
-                }
-            });
+        // --- Restored Modal Logic ---
+        const massBtn = document.getElementById('massMessageBtn'); // From dashboard
+        const massModal = document.getElementById('massMessageModal');
+        const closeModal = document.getElementById('closeModal');
+        const cancelBtn = document.getElementById('cancelBtn');
+
+        if (massBtn && massModal) {
+            massBtn.addEventListener('click', () => massModal.style.display = "block");
+            const hideModal = () => massModal.style.display = "none";
+            if (closeModal) closeModal.onclick = hideModal;
+            if (cancelBtn) cancelBtn.onclick = hideModal;
+            window.onclick = (e) => { if (e.target == massModal) hideModal(); }
         }
     });
-</script>
+    </script>
 </body>
 </html>

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-container px-4">
+    <div class="card" style="max-width: 550px; margin: 30px auto; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+        
+        <div class="card-header" style="padding: 20px 25px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 1.5rem;">🔧</span>
+            <div>
+                <h2 style="font-family: 'Playfair Display', serif; color: var(--text-primary); margin: 0; font-size: 1.25rem;">
+                    Maintenance Request
+                </h2>
+                <p class="text-muted" style="font-size: 0.8rem; margin: 0;">Provide details to help us resolve the issue.</p>
+            </div>
+        </div>
+
+        <div class="card-body" style="padding: 25px;">
+            <form method="POST">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                <div class="form-group" style="margin-bottom: 18px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px; color: var(--text-primary); font-size: 0.9rem;">
+                        {{ field.label }}
+                    </label>
+                    
+                    {{ field }}
+
+                    {% if field.errors %}
+                        <div style="color: #e74c3c; font-size: 0.75rem; margin-top: 4px; font-weight: 500;">
+                            {{ field.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <div style="display: flex; gap: 10px; margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 2; padding: 10px; font-weight: 600; font-size: 0.95rem;">
+                        Submit Request
+                    </button>
+                    <a href="{% url 'tenant_dashboard' %}" class="btn btn-secondary" 
+                       style="flex: 1; text-decoration: none; padding: 10px; display: flex; align-items: center; justify-content: center; background: #95a5a6; color: white; border: none; font-size: 0.95rem;">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Standardized Input Sizes */
+    .form-group input, 
+    .form-group select, 
+    .form-group textarea {
+        width: 100%;
+        padding: 9px 12px;
+        border: 1px solid var(--input-border);
+        background: var(--input-bg);
+        color: var(--text-primary);
+        border-radius: 6px;
+        font-size: 0.9rem;
+        outline: none;
+    }
+
+    .form-group textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        border-color: var(--accent-color);
+    }
+</style>
+{% endblock %}

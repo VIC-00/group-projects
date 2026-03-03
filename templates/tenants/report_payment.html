@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-content active">
+    <div class="card" style="max-width: 600px; margin: 30px auto;">
+        <div class="card-header">
+            <h2 style="margin: 0;">💸 Report a Payment</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="font-weight:600; display:block; margin-bottom:8px;">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <small style="color: #e74c3c; display: block; margin-top: 5px;">{{ field.errors.0 }}</small>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <div style="background: rgba(52, 152, 219, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">
+                        <strong>Note:</strong> Once submitted, your balance will update only after the manager confirms the transaction.
+                    </p>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary">Submit Report</button>
+                    <a href="{% url 'tenant_dashboard' %}" class="btn btn-secondary" style="text-decoration:none;">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Styling to match your dashboard inputs */
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--input-border);
+        background: var(--input-bg);
+        color: var(--text-primary);
+        border-radius: 6px;
+        outline: none;
+    }
+</style>
+{% endblock %}

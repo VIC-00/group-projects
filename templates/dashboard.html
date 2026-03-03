@@ -9,6 +9,11 @@
         <a href="{% url 'add_tenant' %}" class="btn btn-primary" style="text-decoration: none;">+ Add New Tenant</a>
         <a href="{% url 'add_property' %}" class="btn btn-primary" style="text-decoration: none;">+ Add New Property</a>
         <a href="{% url 'record_payment' %}" class="btn btn-primary" style="text-decoration: none;">+ Record Payment</a>
+        
+        <button class="btn btn-primary" id="announcementBtn" style="background-color: #f39c12; border-color: #f39c12;">
+             Post Announcement
+        </button>
+
         <button class="btn btn-secondary" id="massMessageBtn">&#128231; Send Mass Message</button>
     </div>
 
@@ -36,7 +41,6 @@
     </div>
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 25px;">
-        
         <div class="card" style="margin-bottom: 0;">
             <div class="card-header">
                 <h2 style="margin: 0;">Revenue by Property</h2>
@@ -54,7 +58,6 @@
                 <canvas id="maintenanceChart" style="max-height: 280px;"></canvas>
             </div>
         </div>
-
     </div>
 
     <div class="card">
@@ -69,7 +72,6 @@
                         <th>Tenant</th>
                         <th>Property</th>
                         <th>Amount</th>
-                        <th>Method</th>
                         <th>Date</th>
                         <th>Status</th>
                     </tr>
@@ -78,9 +80,8 @@
                     {% for payment in recent_payments %}
                     <tr>
                         <td>{{ payment.tenant.user.get_full_name }}</td>
-                        <td>{{ payment.tenant.assigned_property.name }} - {{ payment.tenant.unit_number }}</td>
+                        <td>{{ payment.tenant.assigned_property.name }}</td>
                         <td>KES {{ payment.amount|floatformat:0 }}</td>
-                        <td>{{ payment.method }}</td>
                         <td>{{ payment.date|date:"M d, Y" }}</td>
                         <td>
                             <span class="badge {% if payment.status == 'confirmed' %}badge-success{% else %}badge-warning{% endif %}">
@@ -89,9 +90,7 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr>
-                        <td colspan="6" style="text-align: center; padding: 20px;">No recent payments recorded.</td>
-                    </tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px;">No recent payments.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -111,7 +110,6 @@
                         <th>Property</th>
                         <th>Issue</th>
                         <th>Priority</th>
-                        <th>Date</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -126,21 +124,46 @@
                                 {{ request.priority|title }}
                             </span>
                         </td>
-                        <td>{{ request.date_reported|date:"M d, Y" }}</td>
-                        <td>
-                            <span class="badge {% if request.status == 'completed' %}badge-success{% elif request.status == 'in_progress' %}badge-info{% else %}badge-warning{% endif %}">
-                                {{ request.status|title }}
-                            </span>
-                        </td>
+                        <td>{{ request.status|title }}</td>
                     </tr>
                     {% empty %}
-                    <tr>
-                        <td colspan="6" style="text-align: center; padding: 20px;">No maintenance requests found.</td>
-                    </tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px;">No requests found.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+    </div>
+</div>
+
+<div id="announcementModal" class="modal" style="display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);">
+    <div class="modal-content" style="max-width: 750px; width: 90%; background-color: var(--bg-primary); margin: 5% auto; border: 1px solid var(--border-color); border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); overflow: hidden;"> 
+        <div class="modal-header" style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0; color: var(--text-primary);">Broadcast New Announcement</h2>
+            <button type="button" class="close-btn" id="closeAnnounce" style="background: none; border: none; font-size: 24px; color: var(--text-secondary); cursor: pointer;">&times;</button>
+        </div>
+        
+        <form method="POST">
+            {% csrf_token %}
+            <div class="modal-body" style="padding: 20px;">
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="font-weight:600; display:block; margin-bottom:5px; color: var(--text-primary);">Subject</label>
+                    {{ announcement_form.title }}
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="font-weight:600; display:block; margin-bottom:5px; color: var(--text-primary);">Message Content</label>
+                    {{ announcement_form.content }}
+                    <div style="font-size: 12.5px; color: var(--text-secondary); margin-top: 6px;">
+                        This message will be visible on the dashboard for all tenants.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer" style="padding: 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn btn-secondary" id="cancelAnnounce">Cancel</button>
+                <button type="submit" name="post_announcement" class="btn btn-primary" style="background-color: #f39c12; border-color: #f39c12;">Broadcast Now</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -149,24 +172,22 @@
 {{ maint_data|json_script:"maint-data" }}
 
 <script>
-    // 1. Read the data from the hidden HTML tags
+    // --- Chart Logic ---
     const propNames = JSON.parse(document.getElementById('prop-names-data').textContent);
     const propRevenues = JSON.parse(document.getElementById('prop-revenues-data').textContent);
     const maintData = JSON.parse(document.getElementById('maint-data').textContent);
 
-    // Set default chart text color so it works on dark/light mode
     Chart.defaults.color = '#9a9a9a';
     Chart.defaults.font.family = '"Raleway", sans-serif';
 
-    // 2. Revenue Bar Chart
     const revCtx = document.getElementById('revenueChart').getContext('2d');
     new Chart(revCtx, {
         type: 'bar',
         data: {
-            labels: propNames, // Clean JavaScript variable!
+            labels: propNames,
             datasets: [{
-                label: 'Collected Revenue (KES)',
-                data: propRevenues, // Clean JavaScript variable!
+                label: 'Revenue (KES)',
+                data: propRevenues,
                 backgroundColor: 'rgba(93, 156, 236, 0.8)',
                 borderColor: 'rgba(93, 156, 236, 1)',
                 borderWidth: 1,
@@ -184,31 +205,41 @@
         }
     });
 
-    // 3. Maintenance Doughnut Chart
     const maintCtx = document.getElementById('maintenanceChart').getContext('2d');
     new Chart(maintCtx, {
         type: 'doughnut',
         data: {
             labels: ['Pending', 'In Progress', 'Completed'],
             datasets: [{
-                data: maintData, // Clean JavaScript variable!
-                backgroundColor: [
-                    'rgba(231, 76, 60, 0.8)',  // Red for pending
-                    'rgba(243, 156, 18, 0.8)', // Orange for progress
-                    'rgba(39, 174, 96, 0.8)'   // Green for completed
-                ],
-                borderWidth: 0,
-                hoverOffset: 4
+                data: maintData,
+                backgroundColor: ['#e74c3c', '#f39c12', '#27ae60'],
+                borderWidth: 0
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             cutout: '70%',
-            plugins: {
-                legend: { position: 'right' }
-            }
+            plugins: { legend: { position: 'right' } }
         }
     });
+
+    // --- Announcement Modal Logic ---
+    const announceModal = document.getElementById('announcementModal');
+    const announceBtn = document.getElementById('announcementBtn');
+    const closeAnnounce = document.getElementById('closeAnnounce');
+    const cancelAnnounce = document.getElementById('cancelAnnounce');
+
+    if (announceBtn) {
+        announceBtn.onclick = function() { announceModal.style.display = "block"; }
+    }
+
+    const closeFunc = function() { announceModal.style.display = "none"; }
+    if (closeAnnounce) closeAnnounce.onclick = closeFunc;
+    if (cancelAnnounce) cancelAnnounce.onclick = closeFunc;
+
+    window.onclick = function(event) {
+        if (event.target == announceModal) announceModal.style.display = "none";
+    }
 </script>
 {% endblock %}

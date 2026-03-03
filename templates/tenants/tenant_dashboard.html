@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-container px-4">
+    <div class="d-flex justify-content-between align-items-end mb-4 pt-4">
+        <div>
+            <h1 style="font-family: 'Playfair Display', serif; color: var(--text-primary); margin-bottom: 5px;">
+                Welcome, {{ request.user.first_name|default:request.user.username }}
+            </h1>
+            <p class="text-muted mb-0">Portal Status: 
+                <span class="badge {% if tenant.status == 'active' %}badge-success{% else %}badge-warning{% endif %}" style="padding: 6px 12px; font-size: 0.75rem;">
+                    {{ tenant.get_status_display }}
+                </span>
+            </p>
+        </div>
+        
+        <div class="quick-actions" style="display: flex; gap: 10px;">
+            <a href="{% url 'report_payment' %}" class="btn btn-primary" style="background: linear-gradient(135deg, #3498db, #2980b9); text-decoration: none; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                <span>💸</span> Report Payment
+            </a>
+
+            <a href="{% url 'report_issue' %}" class="btn btn-primary" style="background: linear-gradient(135deg, #5d9cec, #4a89dc); text-decoration: none; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                <span>+</span> Report Issue
+            </a>
+            
+            {% if tenant.status == 'active' %}
+                <button type="button" class="btn btn-danger" id="openMoveOutModal" style="font-weight: 700; background: #e74c3c; border: none;">
+                    🚪 Initiate Move-Out
+                </button>
+            {% elif tenant.status == 'notice_given' %}
+                <form method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" name="cancel_move_out" class="btn btn-warning" 
+                            onclick="return confirm('Are you sure you want to cancel your move-out notice?')"
+                            style="font-weight: 700; color: #1a1a1a; border: none;">
+                        🔄 Cancel Notice
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="stats-grid mb-4">
+        <div class="stat-card">
+            <h3>My Residence</h3>
+            <div class="stat-value" style="font-size: 1.6rem; margin: 10px 0;">
+                {{ property.name|default:"Not Assigned" }}
+            </div>
+            <div class="stat-subtitle" style="color: #3498db; font-weight: 700; text-transform: uppercase;">
+                Unit {{ tenant.unit_number|default:"N/A" }}
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <h3>Total Balance</h3>
+            <div class="stat-value {% if tenant.balance > 0 %}text-danger{% else %}text-success{% endif %}" style="font-family: 'Raleway', sans-serif;">
+                KES {{ tenant.balance|floatformat:2 }}
+            </div>
+            <div class="stat-subtitle">Monthly Rent: KES {{ tenant.rent_amount|floatformat:2 }}</div>
+        </div>
+
+        <div class="stat-card">
+            <h3>Active Repairs</h3>
+            <div class="stat-value" style="color: #f1c40f;">{{ requests.count }} Tasks</div>
+            <div class="stat-subtitle">
+                Latest: {{ requests.first.issue|default:"All issues resolved"|truncatechars:25 }}
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4" style="background: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border-color) !important;">
+        <div class="card-header bg-transparent border-0 pt-4 px-4 fw-bold" style="color: var(--text-primary); font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;">
+            📢 Management Announcements
+        </div>
+        <div class="card-body px-4 pb-4">
+            {% for note in announcements %}
+                <div style="margin-bottom: 15px; padding: 18px; background: var(--bg-primary); border-radius: 10px; border-left: 5px solid #3498db; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                    <h5 style="margin-bottom: 5px; color: var(--text-primary); font-weight: 700;">{{ note.title }}</h5>
+                    <p style="margin-bottom: 10px; color: var(--text-secondary); line-height: 1.6; font-size: 0.9rem;">{{ note.content }}</p>
+                    <small style="color: #95a5a6;">Posted: {{ note.date_posted|date:"M d, Y" }}</small>
+                </div>
+            {% empty %}
+                <div style="text-align: center; padding: 20px; color: var(--text-secondary); font-style: italic;">
+                    No new announcements from management.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-7 mb-4">
+            <div class="card border-0 shadow-sm h-100" style="background: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border-color) !important;">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <h2 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase;">Recent Payments</h2>
+                    <a href="{% url 'payment_history' %}" class="btn btn-secondary btn-small" style="font-size: 10px;">Full History</a>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    <div class="table-responsive">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--border-color);">
+                                    <th style="padding: 12px; font-size: 11px; text-align: left; color: var(--text-secondary);">Date</th>
+                                    <th style="padding: 12px; font-size: 11px; text-align: left; color: var(--text-secondary);">Amount</th>
+                                    <th style="padding: 12px; font-size: 11px; text-align: left; color: var(--text-secondary);">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in payments %}
+                                <tr style="border-bottom: 1px solid var(--border-light);">
+                                    <td style="padding: 14px 12px; font-size: 0.85rem; color: var(--text-primary);">{{ p.date|date:"d M Y" }}</td>
+                                    <td style="padding: 14px 12px; font-weight: 700; color: var(--text-primary);">KES {{ p.amount|floatformat:2 }}</td>
+                                    <td style="padding: 14px 12px;">
+                                        <span class="badge {% if p.status == 'confirmed' %}badge-success{% else %}badge-warning{% endif %}">
+                                            {{ p.status|title }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="3" style="text-align: center; padding: 30px; color: var(--text-secondary);">No payments recorded.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5 mb-4">
+            <div class="card border-0 shadow-sm h-100" style="background: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border-color) !important;">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <h2 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase;">Current Repairs</h2>
+                    <a href="{% url 'maintenance_history' %}" class="btn btn-secondary btn-small" style="font-size: 10px;">All Issues</a>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    <ul style="list-style: none; padding: 0;">
+                        {% for req in requests %}
+                        <li style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border-light);">
+                            <div>
+                                <h6 style="margin: 0; color: var(--text-primary); font-size: 0.9rem; font-weight: 600;">{{ req.issue|truncatechars:35 }}</h6>
+                                <small style="color: #95a5a6; font-size: 0.75rem;">Status: {{ req.get_status_display }}</small>
+                            </div>
+                            <span style="height: 10px; width: 10px; border-radius: 50%; background: {% if req.status == 'completed' %}#2ecc71{% else %}#f1c40f{% endif %}; box-shadow: 0 0 8px {% if req.status == 'completed' %}rgba(46,204,113,0.4){% else %}rgba(241,196,15,0.4){% endif %};"></span>
+                        </li>
+                        {% empty %}
+                        <li style="text-align: center; padding: 30px; color: var(--text-secondary);">No active maintenance requests.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="moveOutModal" class="modal">
+    <div class="modal-content" style="max-width: 550px; width: 95%; background-color: var(--bg-primary); border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 15px 50px rgba(0,0,0,0.5);"> 
+        <div class="modal-header" style="border-bottom: 1px solid var(--border-color); padding: 20px;">
+            <h2 style="margin: 0; font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--text-primary);">Notice of Intent to Vacate</h2>
+            <button type="button" class="close-btn" id="closeMoveOut" style="font-size: 30px;">&times;</button>
+        </div>
+        
+        <form method="POST">
+            {% csrf_token %}
+            <div class="modal-body" style="padding: 25px;">
+                <div style="background: rgba(231, 76, 60, 0.1); border-left: 4px solid #e74c3c; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
+                    <p style="margin: 0; color: var(--text-primary); font-size: 0.85rem; line-height: 1.5;">
+                        <strong>Note:</strong> By submitting this, management will be notified of your scheduled departure. Ensure all utility bills are settled before the move-out date.
+                    </p>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="color: var(--text-primary); font-weight: 700; margin-bottom: 8px; display: block;">Intended Move-Out Date</label>
+                    <div class="custom-modal-input">
+                        {{ move_out_form.intended_move_out_date }}
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label style="color: var(--text-primary); font-weight: 700; margin-bottom: 8px; display: block;">Reason for Moving</label>
+                    <div class="custom-modal-input">
+                        {{ move_out_form.move_out_reason }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer" style="padding: 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px; background: var(--bg-secondary);">
+                <button type="button" class="btn btn-secondary" id="cancelMoveOutBtn" style="padding: 10px 20px; text-transform: uppercase;">Go Back</button>
+                <button type="submit" name="submit_move_out" class="btn btn-danger" style="padding: 10px 25px; background: #e74c3c; border: none; font-weight: 700; text-transform: uppercase;">
+                    Confirm Notice
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* 🛠️ MODAL INPUT VISIBILITY & THEME FIXES */
+    .custom-modal-input input, 
+    .custom-modal-input textarea {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-secondary) !important;
+        color: var(--text-primary) !important;
+        font-family: inherit;
+        font-size: 0.95rem;
+        box-sizing: border-box;
+        display: block;
+        margin-top: 5px;
+    }
+
+    .custom-modal-input textarea { min-height: 110px; resize: vertical; }
+
+    /* Fix the calendar icon to be white in Dark Mode */
+    [data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        cursor: pointer;
+    }
+
+    /* Centered Modal Overlay */
+    .modal {
+        display: none; position: fixed; z-index: 3000; left: 0; top: 0;
+        width: 100%; height: 100%; background-color: rgba(0,0,0,0.7);
+        align-items: center; justify-content: center;
+        backdrop-filter: blur(4px);
+    }
+    
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+
+    /* Custom Scrollbar for modern feel */
+    .table-responsive::-webkit-scrollbar { height: 4px; }
+    .table-responsive::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const moModal = document.getElementById('moveOutModal');
+        const moBtn = document.getElementById('openMoveOutModal');
+        const closeMo = document.getElementById('closeMoveOut');
+        const cancelBtn = document.getElementById('cancelMoveOutBtn');
+
+        // Open Modal
+        if (moBtn) {
+            moBtn.addEventListener('click', () => {
+                moModal.style.display = "flex"; 
+            });
+        }
+
+        // Close Modal Functions
+        const hideMo = () => moModal.style.display = "none";
+        if (closeMo) closeMo.onclick = hideMo;
+        if (cancelBtn) cancelBtn.onclick = hideMo;
+
+        // Click outside to close
+        window.onclick = (e) => {
+            if (e.target == moModal) hideMo();
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-container px-4">
+    <div class="d-flex justify-content-between align-items-end mb-4 pt-4">
+        <div>
+            <h1 style="font-family: 'Playfair Display', serif; color: var(--text-primary); margin-bottom: 5px;">
+                Repair History
+            </h1>
+            <p class="text-muted mb-0">Archive of all maintenance requests and their current status</p>
+        </div>
+        
+        <div class="quick-actions">
+            <a href="{% url 'report_issue' %}" class="btn btn-primary shadow-sm" 
+               style="text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 8px; padding: 10px 20px;">
+                <span style="font-size: 1.1rem;">🔧</span> Request Repair
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="background: var(--bg-secondary); border-radius: 15px; overflow: hidden;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" style="color: var(--text-primary); width: 100%; border-collapse: collapse;">
+                    <thead class="small text-muted text-uppercase" style="background: rgba(0,0,0,0.03);">
+                        <tr>
+                            <th style="padding: 18px 20px;">Issue Details</th>
+                            <th>Reported On</th>
+                            <th>Priority</th>
+                            <th style="text-align: right; padding-right: 20px;">Current Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in all_requests %}
+                        <tr style="border-top: 1px solid var(--border-color);">
+                            <td style="padding: 18px 20px;">
+                                <div style="font-weight: 600; font-size: 0.95rem;">{{ req.issue }}</div>
+                                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">
+                                    {{ req.description|truncatechars:70 }}
+                                </div>
+                            </td>
+                            <td class="text-muted">{{ req.date_reported|date:"d M, Y" }}</td>
+                            <td>
+                                <span style="font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; background: rgba(0,0,0,0.05); text-transform: uppercase; letter-spacing: 0.5px;">
+                                    {{ req.priority }}
+                                </span>
+                            </td>
+                            <td style="text-align: right; padding-right: 20px;">
+                                {% if req.status == 'completed' %}
+                                    <span class="badge rounded-pill" style="background: rgba(39, 174, 96, 0.1); color: #27ae60; padding: 6px 14px; font-weight: 700;">
+                                        ● Resolved
+                                    </span>
+                                {% elif req.status == 'in_progress' %}
+                                    <span class="badge rounded-pill" style="background: rgba(241, 196, 15, 0.1); color: #f39c12; padding: 6px 14px; font-weight: 700;">
+                                        ● In Progress
+                                    </span>
+                                {% else %}
+                                    <span class="badge rounded-pill" style="background: rgba(149, 165, 166, 0.1); color: #7f8c8d; padding: 6px 14px; font-weight: 700;">
+                                        ● Pending
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 60px; color: var(--text-secondary);">
+                                <div style="font-size: 2rem; margin-bottom: 10px;">🛠️</div>
+                                <p>No repair requests found. Your history will appear here once you report an issue.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

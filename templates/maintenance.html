@@ -2,9 +2,23 @@
 
 {% block content %}
 <div id="maintenancePage" class="page-content active">
-    <div class="quick-actions">
-        <a href="{% url 'add_maintenance' %}" class="btn btn-primary" style="text-decoration: none;">+ New Request</a>
-        <a href="{% url 'export_maintenance_csv' %}" class="btn btn-secondary" style="text-decoration: none;">Export Report</a>
+    <div class="quick-actions" style="display: flex; gap: 12px; margin-bottom: 25px; align-items: center; flex-wrap: wrap;">
+        <a href="{% url 'add_maintenance' %}" class="btn btn-primary">
+            + New Request
+        </a>
+
+        <a href="{% url 'manage_staff' %}" class="btn btn-secondary" style="position: relative; display: flex; align-items: center; gap: 8px;">
+            <span>👥</span> Staff Management
+            {% if pending_staff_count > 0 %}
+                <span style="position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white; font-size: 0.7rem; font-weight: 800; padding: 2px 6px; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                    {{ pending_staff_count }}
+                </span>
+            {% endif %}
+        </a>
+
+        <a href="{% url 'export_maintenance_csv' %}" class="btn btn-secondary">
+            Export Report
+        </a>
     </div>
     
     <div class="stats-grid">
@@ -14,66 +28,106 @@
         <div class="stat-card"><h3>Avg Resolution</h3><div class="stat-value">{{ avg_resolution|default:"---" }}</div><div class="stat-subtitle">Average time</div></div>
     </div>
 
-    <div class="card">
-        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-            <h2 style="margin: 0;">Maintenance Requests</h2>
+    <div class="card shadow-sm" style="border-radius: 12px; overflow: hidden; border: none; background: var(--bg-primary);">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border-color); background: var(--bg-secondary);">
+            <h2 style="margin: 0; font-family: 'Playfair Display', serif; font-size: 1.4rem;">Maintenance Requests</h2>
             
-            <form method="GET" action="{% url 'maintenance' %}" style="display:flex; gap:10px; align-items: center; flex-wrap: wrap;">
-                <select name="status" onchange="this.form.submit()" style="padding:7px 12px; border:1px solid var(--input-border); border-radius:6px;">
+            <form method="GET" action="{% url 'maintenance' %}" style="display:flex; gap:10px; align-items: center;">
+                <select name="status" onchange="this.form.submit()" style="padding:8px 12px; border:1px solid var(--border-color); border-radius:8px; background: var(--bg-primary); color: var(--text-primary); cursor: pointer;">
                     <option value="all" {% if selected_status == 'all' %}selected{% endif %}>All Requests</option>
                     <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="assigned" {% if selected_status == 'assigned' %}selected{% endif %}>Assigned</option>
                     <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>In Progress</option>
                     <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Completed</option>
                 </select>
                 
                 {% if selected_status and selected_status != 'all' %}
-                    <a href="{% url 'maintenance' %}" class="btn btn-secondary btn-small" style="text-decoration: none;">Clear</a>
+                    <a href="{% url 'maintenance' %}" style="text-decoration: none; font-size: 0.8rem; color: var(--accent-color); font-weight: 600;">Clear Filters</a>
                 {% endif %}
             </form>
         </div>
+
         <div class="card-body" style="padding:0; overflow-x: auto;">
-            <table style="width: 100%;">
-                <thead>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead style="background: rgba(0,0,0,0.02);">
                     <tr>
-                        <th>Request ID</th>
-                        <th>Tenant</th>
-                        <th>Property & Unit</th>
-                        <th>Issue</th>
-                        <th>Priority</th>
-                        <th>Date Reported</th>
-                        <th>Status</th>
-                        <th class="actions-cell">Actions</th> 
+                        <th style="padding: 15px 20px; text-align: left; font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">ID & Tenant</th>
+                        <th style="padding: 15px 20px; text-align: left; font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Property & Unit</th>
+                        <th style="padding: 15px 20px; text-align: left; font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Issue & Remarks</th>
+                        <th style="padding: 15px 20px; text-align: left; font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Assigned Staff</th>
+                        <th style="padding: 15px 20px; text-align: left; font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Status</th>
+                        <th style="padding: 15px 20px; text-align: center; font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Actions</th> 
                     </tr>
                 </thead>
                 <tbody>
                     {% for request in maintenance_requests %}
-                    <tr>
-                        <td>#MNT-{{ request.id }}</td>
-                        <td>{{ request.tenant.user.get_full_name }}</td>
-                        <td>{{ request.tenant.assigned_property.name }} - {{ request.tenant.unit_number }}</td>
-                        <td>{{ request.issue }}</td>
-                        <td>
-                            <span class="badge {% if request.priority == 'high' %}badge-danger{% elif request.priority == 'medium' %}badge-warning{% else %}badge-success{% endif %}">
-                                {{ request.priority|title }}
-                            </span>
+                    <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s;">
+                        <td style="padding: 15px 20px;">
+                            <div style="font-weight: 700;">#{{ request.id }}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-secondary);">{{ request.tenant.user.get_full_name }}</div>
                         </td>
-                        <td>{{ request.date_reported|date:"M d, Y" }}</td>
-                        <td>
+                        <td style="padding: 15px 20px;">
+                            <div style="font-weight: 600;">{{ request.tenant.assigned_property.name }}</div>
+                            <div style="font-size: 0.8rem; color: var(--accent-color);">Unit {{ request.tenant.unit_number }}</div>
+                        </td>
+                        
+                        <td style="padding: 15px 20px; max-width: 250px;">
+                            <div style="font-weight: 700;">{{ request.issue }}</div>
+                            {% if request.tech_notes %}
+                                <div style="font-size: 0.75rem; color: #27ae60; margin-top: 5px; line-height: 1.3; font-style: italic; background: rgba(39, 174, 96, 0.05); padding: 4px; border-radius: 4px;">
+                                    <strong>Tech:</strong> {{ request.tech_notes|truncatechars:50 }}
+                                </div>
+                            {% endif %}
+                        </td>
+                        
+                        <td style="padding: 15px 20px;">
+                            {% if request.assigned_to %}
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="font-size: 1rem;">👷</span>
+                                    <span style="font-size: 0.85rem; font-weight: 600; color: var(--accent-color);">
+                                        {{ request.assigned_to.get_full_name|default:request.assigned_to.username }}
+                                    </span>
+                                </div>
+                                <div class="badge {% if request.priority == 'high' %}badge-danger{% elif request.priority == 'medium' %}badge-warning{% else %}badge-success{% endif %}" style="margin-top: 5px; font-size: 0.65rem;">
+                                    {{ request.priority|upper }}
+                                </div>
+                            {% else %}
+                                <span class="text-muted" style="font-size: 0.8rem; font-style: italic;">Unassigned</span>
+                            {% endif %}
+                        </td>
+
+                        <td style="padding: 15px 20px;">
                             <span class="badge {% if request.status == 'completed' %}badge-success{% elif request.status == 'in_progress' %}badge-info{% elif request.status == 'assigned' %}badge-primary{% else %}badge-warning{% endif %}">
                                 {{ request.status|title }}
                             </span>
                         </td>
-                        <td class="actions-cell">
-                            <a href="{% url 'edit_maintenance' request.pk %}" class="btn btn-primary btn-small">Update</a>
+
+                        <td class="actions-cell" style="padding: 15px 20px; text-align: center;">
+                            {% if request.status == 'pending' or not request.assigned_to %}
+                                <a href="{% url 'assign_maintenance' request.pk %}" class="btn btn-secondary btn-small">Assign</a>
+                            {% endif %}
+                            
+                            <a href="{% url 'edit_maintenance' request.pk %}" class="btn btn-primary btn-small">Edit</a>
+                            
                             <a href="{% url 'delete_maintenance' request.pk %}" class="btn btn-danger btn-small">Delete</a>
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="8" style="text-align:center; padding:20px;">No maintenance requests found.</td></tr>
+                    <tr>
+                        <td colspan="6" style="text-align:center; padding:60px; color: var(--text-secondary);">
+                            <div style="font-size: 2.5rem; margin-bottom: 10px;">🛠️</div>
+                            <h4>No maintenance requests found.</h4>
+                            <p>All property maintenance is currently up to date.</p>
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
+<style>
+    tr:hover { background: rgba(0,0,0,0.01) !important; }
+</style>
 {% endblock %}

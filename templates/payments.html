@@ -51,10 +51,10 @@
                 <tbody>
                     {% for payment in payments %}
                     <tr>
-                        <td>{{ payment.transaction_id|default:"---" }}</td>
+                        <td><code>{{ payment.transaction_id|default:"---" }}</code></td>
                         <td>{{ payment.tenant.user.get_full_name }}</td>
                         <td>{{ payment.tenant.assigned_property.name }}</td>
-                        <td>KES {{ payment.amount|floatformat:0 }}</td>
+                        <td style="font-weight: 700;">KES {{ payment.amount|floatformat:0 }}</td>
                         <td>{{ payment.method }}</td>
                         <td>{{ payment.date|date:"M d, Y" }}</td>
                         <td>
@@ -67,8 +67,18 @@
                             {% endif %}
                         </td>
                         <td class="actions-cell">
-                            <a href="{% url 'generate_invoice' payment.pk %}" class="btn btn-secondary btn-small">Invoice</a>
-                            <a href="{% url 'edit_payment' payment.pk %}" class="btn btn-primary btn-small">Edit</a>
+                            {% if payment.status == 'pending' %}
+                                <form action="{% url 'approve_payment' payment.pk %}" method="POST" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary btn-small" style="background: #27ae60; border: none;" onclick="return confirm('Confirm receipt of KES {{ payment.amount }}?')">
+                                        Confirm
+                                    </button>
+                                </form>
+                                <a href="{% url 'edit_payment' payment.pk %}" class="btn btn-secondary btn-small">Reject</a>
+                            {% else %}
+                                <a href="{% url 'generate_invoice' payment.pk %}" class="btn btn-secondary btn-small">Invoice</a>
+                                <a href="{% url 'edit_payment' payment.pk %}" class="btn btn-primary btn-small">Edit</a>
+                            {% endif %}
                         </td>
                     </tr>
                     {% empty %}

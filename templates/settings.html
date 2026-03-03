@@ -13,7 +13,7 @@
                 <h2 style="margin: 0;">Profile Settings</h2>
             </div>
             <div class="card-body">
-                <form method="POST" action="{% url 'settings' %}">
+                <form method="POST">
                     {% csrf_token %}
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label style="font-weight:600; display:block; margin-bottom:5px;">First Name</label>
@@ -24,14 +24,52 @@
                         <input type="text" name="last_name" value="{{ request.user.last_name }}" style="padding:7px 12px; width:100%; border:1px solid var(--input-border); border-radius:6px; background:var(--input-bg); color:var(--text-primary);">
                     </div>
                     <div class="form-group" style="margin-bottom: 15px;">
-                        <label style="font-weight:600; display:block; margin-bottom:5px;">Administrator Email</label>
+                        <label style="font-weight:600; display:block; margin-bottom:5px;">Username</label>
+                        <input type="text" name="username" value="{{ request.user.username }}" style="padding:7px 12px; width:100%; border:1px solid var(--input-border); border-radius:6px; background:var(--input-bg); color:var(--text-primary);">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="font-weight:600; display:block; margin-bottom:5px;">Email Address</label>
                         <input type="email" name="email" value="{{ request.user.email }}" style="padding:7px 12px; width:100%; border:1px solid var(--input-border); border-radius:6px; background:var(--input-bg); color:var(--text-primary);">
                     </div>
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label style="font-weight:600; display:block; margin-bottom:5px;">Phone Number</label>
                         <input type="tel" name="phone_number" value="{{ request.user.phone_number }}" style="padding:7px 12px; width:100%; border:1px solid var(--input-border); border-radius:6px; background:var(--input-bg); color:var(--text-primary);">
                     </div>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="submit" name="update_profile" class="btn btn-primary">Save Changes</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card" style="height: fit-content;">
+            <div class="card-header">
+                <h2 style="margin: 0;">Security</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    {% for field in password_form %}
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="font-weight:600; display:block; margin-bottom:5px;">{{ field.label }}</label>
+                        
+                        <div style="position: relative; display: flex; align-items: center;">
+                            <input type="password" 
+                                   name="{{ field.name }}" 
+                                   id="id_{{ field.name }}"
+                                   style="padding:7px 40px 7px 12px; width:100%; border:1px solid var(--input-border); border-radius:6px; background:var(--input-bg); color:var(--text-primary);">
+                            
+                            <span class="toggle-password" 
+                                  onclick="togglePassword('id_{{ field.name }}', this)"
+                                  style="position: absolute; right: 12px; cursor: pointer; opacity: 0.6; font-size: 14px; user-select: none;">
+                                👁️
+                            </span>
+                        </div>
+
+                        {% if field.errors %}
+                            <small style="color: #e74c3c; display: block; margin-top: 5px;">{{ field.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <button type="submit" name="change_password" class="btn btn-primary">Update Password</button>
                 </form>
             </div>
         </div>
@@ -58,4 +96,60 @@
 
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const themeToggle = document.getElementById('themeToggle');
+    const html = document.documentElement;
+
+    // 1. SYNC: Set toggle position based on current state of the <html> tag
+    // If NOT dark, then it must be light.
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    themeToggle.checked = !isDark; 
+
+    // 2. LOGIC: Flip the switch
+    themeToggle.addEventListener('change', function() {
+        if (this.checked) {
+            // Checked means LIGHT MODE
+            html.removeAttribute('data-theme');
+            localStorage.setItem('theme', 'light');
+            updateHeaderUI('light');
+        } else {
+            // Unchecked means DARK MODE
+            html.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+            updateHeaderUI('dark');
+        }
+    });
+
+    // 3. UI HELPER: Sync the Top Bar button text
+    function updateHeaderUI(theme) {
+        const headerBtnText = document.getElementById('darkModeText');
+        const headerBtnIcon = document.getElementById('darkModeIcon');
+        
+        if (headerBtnText && headerBtnIcon) {
+            if (theme === 'light') {
+                headerBtnText.textContent = 'Dark Mode'; // Label shows what happens NEXT
+                headerBtnIcon.textContent = '🌙';
+            } else {
+                headerBtnText.textContent = 'Light Mode';
+                headerBtnIcon.textContent = '☀️';
+            }
+        }
+    }
+});
+
+// Existing password toggle logic
+function togglePassword(inputId, iconElement) {
+    const input = document.getElementById(inputId);
+    if (input.type === "password") {
+        input.type = "text";
+        iconElement.textContent = "🙈";
+    } else {
+        input.type = "password";
+        iconElement.textContent = "👁️";
+    }
+}
+
+</script>
 {% endblock %}
