@@ -3,15 +3,14 @@
 {% block content %}
 <div id="tenantsPage" class="page-content active">
     <div class="quick-actions" style="margin-bottom: 25px;">
-        <a href="{% url 'add_tenant' %}" class="btn btn-primary" style="text-decoration: none;">+ Add New Tenant</a>
-        <a href="{% url 'export_tenants_csv' %}" class="btn btn-secondary" style="text-decoration: none;">Export Tenant List</a>
+        <a href="{% url 'add_tenant' %}" class="btn btn-primary" style="text-decoration: none; font-weight: 700;">+ Add New Tenant</a>
+        <a href="{% url 'export_tenants_csv' %}?{{ request.GET.urlencode }}" class="btn btn-secondary" style="text-decoration: none;">Export Tenant List</a>
     </div>
 
     <div class="stats-grid">
         <div class="stat-card"><h3>Total Tenants</h3><div class="stat-value">{{ tenants.count }}</div><div class="stat-subtitle">Active leases</div></div>
         <div class="stat-card"><h3>Good Standing</h3><div class="stat-value">{{ standing_count }}</div><div class="stat-subtitle">No overdue payments</div></div>
         <div class="stat-card"><h3>Overdue</h3><div class="stat-value" style="color: #e74c3c;">{{ overdue_count }}</div><div class="stat-subtitle">Payment pending</div></div>
-        
         <div class="stat-card" {% if move_out_notices > 0 %}style="border-left: 5px solid #f39c12;"{% endif %}>
             <h3>Move-Out Notices</h3>
             <div class="stat-value" {% if move_out_notices > 0 %}style="color: #f39c12;"{% endif %}>{{ move_out_notices|default:0 }}</div>
@@ -23,17 +22,13 @@
     <div class="card" style="border-left: 5px solid #3498db; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.1);">
         <div class="card-header" style="background: rgba(52, 152, 219, 0.05);">
             <h2 style="color: #3498db; margin-bottom: 5px;">New Account Requests</h2>
-            <p class="text-muted" style="font-size: 0.9rem;">These tenants signed up and are waiting for you to verify their details.</p>
+            <p class="text-muted" style="font-size: 0.9rem;">Verify details and set rent for new signups.</p>
         </div>
         <div class="card-body" style="padding: 0; overflow-x: auto;">
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Property & Unit</th>
-                        <th>Phone</th>
-                        <th>Email</th>
-                        <th>Actions</th>
+                        <th>Name</th><th>Property & Unit</th><th>Phone</th><th>Email</th><th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -47,19 +42,13 @@
                             <div style="display: flex; gap: 8px;">
                                 <button type="button" class="btn btn-primary btn-small btn-approve-signup" 
                                         style="background: #3498db; border: none; font-weight: bold;"
-                                        data-id="{{ pending.id }}"
-                                        data-name="{{ pending.user.get_full_name }}"
-                                        data-property="{{ pending.assigned_property.name }}"
-                                        data-unit="{{ pending.unit_number }}">
+                                        data-id="{{ pending.id }}" data-name="{{ pending.user.get_full_name }}"
+                                        data-property="{{ pending.assigned_property.name }}" data-unit="{{ pending.unit_number }}">
                                     Verify & Approve
                                 </button>
-                                
                                 <form action="{% url 'reject_tenant_signup' pending.id %}" method="POST" style="display:inline;">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger btn-small" 
-                                            onclick="return confirm('Are you sure you want to reject this registration? The account will be deleted.')">
-                                        Reject
-                                    </button>
+                                    <button type="submit" class="btn btn-danger btn-small" onclick="return confirm('Reject and delete this account?')">Reject</button>
                                 </form>
                             </div>
                         </td>
@@ -70,28 +59,19 @@
         </div>
     </div>
     {% endif %}
-    
-    {% if not pending_tenants %}
-    <div style="text-align: center; padding: 20px; color: var(--text-secondary);">
-        <p>🎉 All clear! No new signups waiting for approval.</p>
-    </div>
-{% endif %}
 
     <div class="card">
         <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-            <h2>All Tenants</h2>
+            <h2 style="font-family: 'Playfair Display', serif;">All Tenants</h2>
             
             <form method="GET" action="{% url 'tenants' %}" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <select name="property_id" onchange="this.form.submit()" style="padding: 7px 12px; border: 1px solid var(--input-border); border-radius: 6px;">
+                <select name="property_id" onchange="this.form.submit()" style="padding: 7px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary);">
                     <option value="all">All Properties</option>
                     {% for p in properties %}
                         <option value="{{ p.id }}" {% if selected_property == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
                     {% endfor %}
                 </select>
-                
-                <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Search tenants..." 
-                    style="padding: 7px 12px; border: 1px solid var(--input-border); border-radius: 6px; width: 190px;">
-                
+                <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Search name/unit..." style="padding: 7px 12px; border: 1px solid var(--border-color); border-radius: 6px; width: 190px; background: var(--bg-secondary); color: var(--text-primary);">
                 <button type="submit" class="btn btn-primary btn-small">Search</button>
 
                 {% if query or selected_property != 'all' %}
@@ -104,14 +84,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Tenant Name</th>
-                        <th>Property & Unit</th>
-                        <th>Phone</th>
-                        <th>Rent Amount</th>
-                        <th>Balance</th>
-                        <th>Lease End</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>Tenant Name</th><th>Property & Unit</th><th>Phone</th><th>Rent</th>
+                        <th>Balance / Credit</th> <th>Lease End</th><th>Status</th><th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -120,15 +94,27 @@
                         <td><strong>{{ tenant.user.get_full_name }}</strong></td>
                         <td>{{ tenant.assigned_property.name }} - Unit {{ tenant.unit_number }}</td>
                         <td>{{ tenant.user.phone_number }}</td>
-                        <td>KES {{ tenant.rent_amount|default:"0" }}</td>
-                        <td {% if tenant.balance > 0 %}style="color:#e74c3c; font-weight:700;"{% endif %}>KES {{ tenant.balance }}</td>
+                        <td>KES {{ tenant.rent_amount|floatformat:0 }}</td>
+                        
+                        <td>
+                            {% if tenant.balance < 0 %}
+                                <span style="color: #2ecc71; font-weight: 800;">
+                                    (Credit) KES {{ tenant.balance|stringformat:"f"|slice:"1:"|floatformat:0 }}
+                                </span>
+                            {% elif tenant.balance > 0 %}
+                                <span style="color: #e74c3c; font-weight: 800;">KES {{ tenant.balance|floatformat:0 }}</span>
+                            {% else %}
+                                <span class="text-muted">Settled</span>
+                            {% endif %}
+                        </td>
+
                         <td>{{ tenant.lease_end|default:"N/A" }}</td>
                         <td>
                             {% if tenant.status == 'notice_given' %}
-                                <span class="badge" style="background: #f39c12; color: white;">Notice Given</span>
+                                <span class="badge" style="background: #f39c12;">Notice Given</span>
                             {% elif tenant.status == 'approved' %}
-                                <span class="badge badge-success">Approved</span>
-                            {% elif tenant.balance == 0 %}
+                                <span class="badge badge-success">Move-Out Appr.</span>
+                            {% elif tenant.balance <= 0 %}
                                 <span class="badge badge-success">Active</span>
                             {% else %}
                                 <span class="badge badge-warning">Overdue</span>
@@ -145,16 +131,16 @@
                                             data-date="{{ tenant.intended_move_out_date|date:'d M Y' }}"
                                             data-reason="{{ tenant.move_out_reason|default:'No reason provided' }}"
                                             data-url="{% url 'approve_move_out' tenant.id %}">
-                                        Review
+                                        Review Notice
                                     </button>
                                 {% endif %}
                                 <a href="{% url 'edit_tenant' tenant.pk %}" class="btn btn-primary btn-small">Edit</a>
-                                <a href="{% url 'delete_tenant' tenant.pk %}" class="btn btn-danger btn-small" onclick="return confirm('Remove this tenant?')">Remove</a>
+                                <a href="{% url 'delete_tenant' tenant.pk %}" class="btn btn-danger btn-small" onclick="return confirm('Permanently remove this tenant?')">Remove</a>
                             </div>
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="8" style="text-align:center; padding: 20px;">No tenants found.</td></tr>
+                    <tr><td colspan="8" style="text-align:center; padding: 30px; color: var(--text-secondary);">No tenants found.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -162,49 +148,57 @@
     </div>
 </div>
 
-<div id="reviewMoveOutModal" class="modal" style="display: none; position: fixed; z-index: 4000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7);">
-    <div class="modal-content" style="max-width: 500px; width: 90%; background-color: var(--bg-primary); margin: 10% auto; border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden;">
+<div id="reviewMoveOutModal" class="modal" style="display: none; position: fixed; z-index: 4000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); align-items: center; justify-content: center;">
+    <div class="modal-content" style="max-width: 500px; width: 90%; background-color: var(--bg-primary); border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
         <div class="modal-header" style="padding: 20px; border-bottom: 1px solid var(--border-color); background: var(--bg-secondary);">
-            <h2 style="margin: 0; font-size: 1.3rem; color: var(--text-primary);">Review Move-Out Request</h2>
+            <h2 style="margin: 0; font-size: 1.3rem; color: var(--text-primary); font-family: 'Playfair Display', serif;">Review Move-Out Request</h2>
         </div>
         <div class="modal-body" style="padding: 25px;">
-            <h4 id="reviewTenantName" style="margin-bottom: 5px; color: var(--accent-color);"></h4>
+            <h4 id="reviewTenantName" style="margin-bottom: 5px; color: #3498db; font-weight: 800;"></h4>
             <p id="reviewUnit" class="text-muted small" style="margin-bottom: 20px;"></p>
             <div id="balanceAlert" style="padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                <label style="font-size: 0.8rem; text-transform: uppercase; font-weight: 700;">Current Balance</label>
-                <div id="reviewBalance" style="font-size: 1.5rem; font-weight: 800;"></div>
+                <label style="font-size: 0.7rem; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px;">Financial Status</label>
+                <div id="reviewBalance" style="font-size: 1.4rem; font-weight: 800;"></div>
+                <small id="creditNote" style="display: none; color: #2ecc71;">Note: Tenant has overpaid and is owed a refund.</small>
+                <small id="debtNote" style="display: none; color: #e74c3c;">Note: Outstanding balance must be cleared before move-out.</small>
             </div>
-            <div style="margin-bottom: 15px;"><label style="font-weight: 700; color: var(--text-primary);">Move-Out Date:</label><p id="reviewDate" style="color: var(--text-secondary);"></p></div>
-            <div><label style="font-weight: 700; color: var(--text-primary);">Reason:</label><p id="reviewReason" style="color: var(--text-secondary); font-style: italic; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 5px;"></p></div>
+            <div style="margin-bottom: 15px;"><label style="font-weight: 700; color: var(--text-primary);">Intended Date:</label><p id="reviewDate" style="color: var(--text-secondary);"></p></div>
+            <div><label style="font-weight: 700; color: var(--text-primary);">Reason Provided:</label><p id="reviewReason" style="color: var(--text-secondary); font-style: italic; background: var(--bg-secondary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);"></p></div>
         </div>
         <div class="modal-footer" style="padding: 20px; display: flex; justify-content: flex-end; gap: 10px; background: var(--bg-secondary);">
-            <button type="button" onclick="document.getElementById('reviewMoveOutModal').style.display='none'" class="btn btn-secondary">Back</button>
-            <form id="confirmApproveForm" method="POST">{% csrf_token %}<button type="submit" class="btn btn-primary" style="background: #2ecc71; border: none; font-weight: 600;">Confirm Approval</button></form>
+            <button type="button" onclick="document.getElementById('reviewMoveOutModal').style.display='none'" class="btn btn-secondary">Close</button>
+            <form id="confirmApproveForm" method="POST">{% csrf_token %}<button type="submit" class="btn btn-primary" style="background: #2ecc71; border: none; font-weight: 700;">Approve Move-Out</button></form>
         </div>
     </div>
 </div>
 
-<div id="signupApprovalModal" class="modal" style="display: none; position: fixed; z-index: 4000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7);">
-    <div class="modal-content" style="max-width: 450px; width: 95%; background: var(--bg-primary); margin: 10% auto; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color);">
+<div id="signupApprovalModal" class="modal" style="display: none; position: fixed; z-index: 4000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); align-items: center; justify-content: center;">
+    <div class="modal-content" style="max-width: 450px; width: 95%; background: var(--bg-primary); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color);">
         <form id="approvalSignupForm" method="POST">
             {% csrf_token %}
             <div class="modal-header" style="padding: 20px; background: #3498db; color: white;">
-                <h2 style="margin: 0; font-size: 1.2rem;">Finalize Tenancy</h2>
+                <h2 style="margin: 0; font-size: 1.2rem;">Finalize Tenancy Agreement</h2>
             </div>
             <div class="modal-body" style="padding: 20px;">
-                <p>Setting up <strong><span id="approveName"></span></strong> for <strong><span id="approveUnitDisplay"></span></strong>.</p>
+                <p>Activating account for <strong><span id="approveName"></span></strong> at <span id="approveUnitDisplay"></span>.</p>
                 <div class="form-group" style="margin-bottom: 15px;">
-                    <label style="display:block; margin-bottom: 5px; font-weight: bold;">Monthly Rent (KES)</label>
-                    <input type="number" name="rent_amount" class="form-control" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                    <label style="display:block; margin-bottom: 5px; font-weight: bold;">Agreed Monthly Rent (KES)</label>
+                    <input type="number" name="rent_amount" class="form-control" required style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
                 </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display:block; margin-bottom: 5px; font-weight: bold;">Billing Start Date (Move-in)</label>
+                    <input type="date" name="move_in_date" class="form-control" required style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" value="{% now 'Y-m-d' %}">
+                </div>
+
                 <div class="form-group">
-                    <label style="display:block; margin-bottom: 5px; font-weight: bold;">Lease End Date</label>
-                    <input type="date" name="lease_end" class="form-control" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                    <label style="display:block; margin-bottom: 5px; font-weight: bold;">Lease End Date (Optional)</label>
+                    <input type="date" name="lease_end" class="form-control" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
                 </div>
             </div>
             <div class="modal-footer" style="padding: 15px; display: flex; justify-content: flex-end; gap: 10px; background: var(--bg-secondary);">
                 <button type="button" onclick="document.getElementById('signupApprovalModal').style.display='none'" class="btn btn-secondary">Cancel</button>
-                <button type="submit" class="btn btn-primary" style="background: #3498db; border: none; font-weight: bold;">Activate Tenant</button>
+                <button type="submit" class="btn btn-primary" style="background: #3498db; border: none; font-weight: 700;">Activate Lease</button>
             </div>
         </form>
     </div>
@@ -213,11 +207,8 @@
 <script>
     const reviewModal = document.getElementById('reviewMoveOutModal');
     const signupModal = document.getElementById('signupApprovalModal');
-    const reviewBtns = document.querySelectorAll('.btn-review-moveout');
-    const signupBtns = document.querySelectorAll('.btn-approve-signup');
 
-    // 🚪 Handle Move-Out Reviews
-    reviewBtns.forEach(btn => {
+    document.querySelectorAll('.btn-review-moveout').forEach(btn => {
         btn.onclick = function() {
             document.getElementById('reviewTenantName').innerText = this.getAttribute('data-name');
             document.getElementById('reviewUnit').innerText = this.getAttribute('data-unit');
@@ -225,41 +216,52 @@
             document.getElementById('reviewReason').innerText = this.getAttribute('data-reason');
             document.getElementById('confirmApproveForm').action = this.getAttribute('data-url');
             
-            const balance = parseFloat(this.getAttribute('data-balance'));
-            const balDiv = document.getElementById('reviewBalance');
+            const rawBalance = parseFloat(this.getAttribute('data-balance'));
+            const balDisplay = document.getElementById('reviewBalance');
             const alertBox = document.getElementById('balanceAlert');
-            balDiv.innerText = "KES " + balance.toLocaleString();
+            const debtNote = document.getElementById('debtNote');
+            const creditNote = document.getElementById('creditNote');
 
-            if (balance > 0) {
-                alertBox.style.background = "rgba(231, 76, 60, 0.1)";
-                alertBox.style.borderLeft = "4px solid #e74c3c";
-                balDiv.style.color = "#e74c3c";
-            } else {
+            if (rawBalance < 0) {
+                const absBalance = Math.abs(rawBalance).toLocaleString();
+                balDisplay.innerText = "CREDIT: KES " + absBalance;
+                balDisplay.style.color = "#2ecc71";
                 alertBox.style.background = "rgba(46, 204, 113, 0.1)";
                 alertBox.style.borderLeft = "4px solid #2ecc71";
-                balDiv.style.color = "#2ecc71";
+                creditNote.style.display = "block";
+                debtNote.style.display = "none";
+            } else if (rawBalance > 0) {
+                balDisplay.innerText = "OWED: KES " + rawBalance.toLocaleString();
+                balDisplay.style.color = "#e74c3c";
+                alertBox.style.background = "rgba(231, 76, 60, 0.1)";
+                alertBox.style.borderLeft = "4px solid #e74c3c";
+                debtNote.style.display = "block";
+                creditNote.style.display = "none";
+            } else {
+                balDisplay.innerText = "KES 0 (Settled)";
+                balDisplay.style.color = "var(--text-primary)";
+                alertBox.style.background = "var(--bg-secondary)";
+                alertBox.style.borderLeft = "4px solid var(--border-color)";
+                debtNote.style.display = "none";
+                creditNote.style.display = "none";
             }
-            reviewModal.style.display = "block";
+            reviewModal.style.display = "flex";
         }
     });
 
-    // 🆕 Handle Signup Approvals
-    signupBtns.forEach(btn => {
+    document.querySelectorAll('.btn-approve-signup').forEach(btn => {
         btn.onclick = function() {
             const id = this.getAttribute('data-id');
             document.getElementById('approveName').innerText = this.getAttribute('data-name');
             document.getElementById('approveUnitDisplay').innerText = this.getAttribute('data-property') + " (Unit " + this.getAttribute('data-unit') + ")";
-            
-            // Dynamic URL for the approval view
             document.getElementById('approvalSignupForm').action = "/tenants/approve-signup/" + id + "/";
-            signupModal.style.display = "block";
+            signupModal.style.display = "flex";
         }
     });
 
-    // Close modals when clicking outside
-    window.onclick = function(event) {
-        if (event.target == reviewModal) reviewModal.style.display = "none";
-        if (event.target == signupModal) signupModal.style.display = "none";
+    window.onclick = (e) => {
+        if (e.target == reviewModal) reviewModal.style.display = "none";
+        if (e.target == signupModal) signupModal.style.display = "none";
     }
 </script>
 {% endblock %}

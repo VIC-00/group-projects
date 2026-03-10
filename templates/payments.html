@@ -4,7 +4,10 @@
 <div id="paymentsPage" class="page-content active">
     <div class="quick-actions">
         <a href="{% url 'record_payment' %}" class="btn btn-primary">+ Record Payment</a>
-        <a href="{% url 'export_payments_csv' %}" class="btn btn-secondary" style="text-decoration: none;">Export Report</a>
+        
+        <a href="{% url 'export_payments_csv' %}?{{ request.GET.urlencode }}" class="btn btn-secondary" style="text-decoration: none;">
+            Export Report
+        </a>
     </div>
     
     <div class="stats-grid">
@@ -18,22 +21,42 @@
         <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
             <h2 style="margin: 0;">Payment History</h2>
             
-            <form method="GET" action="{% url 'payments' %}" style="display:flex; gap:10px; align-items: center; flex-wrap: wrap;">
-                <select name="status" onchange="this.form.submit()" style="padding:7px 12px; border:1px solid var(--input-border); border-radius:6px;">
-                    <option value="all" {% if selected_status == 'all' %}selected{% endif %}>All Payments</option>
-                    <option value="confirmed" {% if selected_status == 'confirmed' %}selected{% endif %}>Confirmed</option>
-                    <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option>
-                    <option value="failed" {% if selected_status == 'failed' %}selected{% endif %}>Failed</option>
-                </select>
+            <form method="GET" action="{% url 'payments' %}" style="display:flex; gap:12px; align-items: center; flex-wrap: wrap;">
                 
-                <input type="month" name="month" value="{{ selected_month }}" onchange="this.form.submit()" 
-                       style="padding:7px 12px; border:1px solid var(--input-border); border-radius:6px;">
+                <div style="display: flex; flex-direction: column;">
+                    <label style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 4px; margin-left: 2px;">Status</label>
+                    <select name="status" onchange="this.form.submit()" style="padding:7px 12px; border:1px solid var(--border-color); border-radius:6px; background: var(--bg-secondary); color: var(--text-primary); font-size: 0.85rem;">
+                        <option value="all" {% if selected_status == 'all' %}selected{% endif %}>All Statuses</option>
+                        <option value="confirmed" {% if selected_status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                        <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; flex-direction: column;">
+                    <label style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 4px; margin-left: 2px;">Billing Month</label>
+                    <select name="billing_month" onchange="this.form.submit()" style="padding:7px 12px; border:1px solid var(--border-color); border-radius:6px; background: var(--bg-secondary); color: var(--text-primary); font-size: 0.85rem;">
+                        <option value="">All Periods</option>
+                        {% for i in "123456789"|make_list %}<option value="{{ forloop.counter }}" {% if request.GET.billing_month == forloop.counter|stringformat:"i" %}selected{% endif %}>{{ forloop.counter|date:"F" }}</option>{% endfor %}
+                        <option value="10" {% if request.GET.billing_month == "10" %}selected{% endif %}>October</option>
+                        <option value="11" {% if request.GET.billing_month == "11" %}selected{% endif %}>November</option>
+                        <option value="12" {% if request.GET.billing_month == "12" %}selected{% endif %}>December</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; flex-direction: column;">
+                    <label style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 4px; margin-left: 2px;">Paid In (Month)</label>
+                    <input type="month" name="month" value="{{ selected_month }}" onchange="this.form.submit()" 
+                           style="padding:6px 12px; border:1px solid var(--border-color); border-radius:6px; background: var(--bg-secondary); color: var(--text-primary); font-size: 0.85rem;">
+                </div>
                 
-                {% if selected_status != 'all' or selected_month %}
-                    <a href="{% url 'payments' %}" class="btn btn-secondary btn-small" style="text-decoration: none;">Clear</a>
+                {% if selected_status != 'all' or selected_month or request.GET.billing_month %}
+                    <div style="padding-top: 18px;">
+                        <a href="{% url 'payments' %}" class="btn btn-secondary btn-small" style="text-decoration: none; padding: 7px 12px;">Clear</a>
+                    </div>
                 {% endif %}
             </form>
         </div>
+        
         <div class="card-body" style="padding:0; overflow-x: auto;">
             <table style="width: 100%;">
                 <thead>
@@ -42,8 +65,9 @@
                         <th>Tenant</th>
                         <th>Property</th>
                         <th>Amount</th>
+                        <th>Billing Period</th>
                         <th>Method</th>
-                        <th>Date</th>
+                        <th>Date Paid</th>
                         <th>Status</th>
                         <th class="actions-cell">Actions</th> 
                     </tr>
@@ -55,6 +79,11 @@
                         <td>{{ payment.tenant.user.get_full_name }}</td>
                         <td>{{ payment.tenant.assigned_property.name }}</td>
                         <td style="font-weight: 700;">KES {{ payment.amount|floatformat:0 }}</td>
+                        <td>
+                            <span style="color: #3498db; font-weight: 600;">
+                                {{ payment.get_for_month_display }} {{ payment.for_year }}
+                            </span>
+                        </td>
                         <td>{{ payment.method }}</td>
                         <td>{{ payment.date|date:"M d, Y" }}</td>
                         <td>
@@ -67,22 +96,24 @@
                             {% endif %}
                         </td>
                         <td class="actions-cell">
-                            {% if payment.status == 'pending' %}
-                                <form action="{% url 'approve_payment' payment.pk %}" method="POST" style="display: inline;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-primary btn-small" style="background: #27ae60; border: none;" onclick="return confirm('Confirm receipt of KES {{ payment.amount }}?')">
-                                        Confirm
-                                    </button>
-                                </form>
-                                <a href="{% url 'edit_payment' payment.pk %}" class="btn btn-secondary btn-small">Reject</a>
-                            {% else %}
-                                <a href="{% url 'generate_invoice' payment.pk %}" class="btn btn-secondary btn-small">Invoice</a>
-                                <a href="{% url 'edit_payment' payment.pk %}" class="btn btn-primary btn-small">Edit</a>
-                            {% endif %}
+                            <div style="display: flex; gap: 5px; align-items: center;">
+                                {% if payment.status == 'pending' %}
+                                    <form action="{% url 'approve_payment' payment.pk %}" method="POST" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary btn-small" style="background: #27ae60; border: none;" onclick="return confirm('Confirm receipt of KES {{ payment.amount }}?')">
+                                            Confirm
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <a href="{% url 'generate_invoice' payment.pk %}" class="btn btn-secondary btn-small">Invoice</a>
+                                    <a href="{% url 'edit_payment' payment.pk %}" class="btn btn-primary btn-small">Edit</a>
+                                {% endif %}
+                                <a href="{% url 'delete_payment' payment.pk %}" class="btn btn-danger btn-small" style="background: #e74c3c; border: none;" onclick="return confirm('Delete this payment record?')">Delete</a>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="8" style="text-align:center; padding:20px;">No payments recorded yet.</td></tr>
+                    <tr><td colspan="9" style="text-align:center; padding:20px;">No payments recorded yet.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

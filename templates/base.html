@@ -69,6 +69,9 @@
                 <a href="{% url 'maintenance_dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'maintenance_dashboard' %}active{% endif %}">
                     <span class="icon">📋</span> <span>My Tasks</span>
                 </a>
+                <a href="{% url 'maintenance_work_history' %}" class="nav-item {% if request.resolver_match.url_name == 'maintenance_work_history' %}active{% endif %}">
+                    <span class="icon">📜</span> <span>Work History</span>
+                </a>
                 <a href="{% url 'settings' %}" class="nav-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
                     <span class="icon">⚙️</span> <span>Profile Settings</span>
                 </a>

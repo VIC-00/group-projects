@@ -151,11 +151,16 @@
                 </div>
 
                 <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="font-weight:600; display:block; margin-bottom:5px; color: var(--text-primary);">Target Audience</label>
+                    {{ announcement_form.target_property }}
+                    <div style="font-size: 12.5px; color: var(--text-secondary); margin-top: 6px;">
+                        Select a specific building or leave as "Broadcast" to notify everyone.
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
                     <label style="font-weight:600; display:block; margin-bottom:5px; color: var(--text-primary);">Message Content</label>
                     {{ announcement_form.content }}
-                    <div style="font-size: 12.5px; color: var(--text-secondary); margin-top: 6px;">
-                        This message will be visible on the dashboard for all tenants.
-                    </div>
                 </div>
             </div>
             
@@ -224,7 +229,7 @@
         }
     });
 
-    // --- Announcement Modal Logic ---
+    // --- Modal Control ---
     const announceModal = document.getElementById('announcementModal');
     const announceBtn = document.getElementById('announcementBtn');
     const closeAnnounce = document.getElementById('closeAnnounce');

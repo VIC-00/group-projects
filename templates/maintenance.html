@@ -16,7 +16,7 @@
             {% endif %}
         </a>
 
-        <a href="{% url 'export_maintenance_csv' %}" class="btn btn-secondary">
+        <a href="{% url 'export_maintenance_csv' %}?{{ request.GET.urlencode }}" class="btn btn-secondary" style="text-decoration: none;">
             Export Report
         </a>
     </div>
@@ -42,7 +42,7 @@
                 </select>
                 
                 {% if selected_status and selected_status != 'all' %}
-                    <a href="{% url 'maintenance' %}" style="text-decoration: none; font-size: 0.8rem; color: var(--accent-color); font-weight: 600;">Clear Filters</a>
+                    <a href="{% url 'maintenance' %}" style="text-decoration: none; font-size: 0.8rem; color: #3498db; font-weight: 600;">Clear Filters</a>
                 {% endif %}
             </form>
         </div>
@@ -68,7 +68,7 @@
                         </td>
                         <td style="padding: 15px 20px;">
                             <div style="font-weight: 600;">{{ request.tenant.assigned_property.name }}</div>
-                            <div style="font-size: 0.8rem; color: var(--accent-color);">Unit {{ request.tenant.unit_number }}</div>
+                            <div style="font-size: 0.8rem; color: #3498db;">Unit {{ request.tenant.unit_number }}</div>
                         </td>
                         
                         <td style="padding: 15px 20px; max-width: 250px;">
@@ -84,7 +84,7 @@
                             {% if request.assigned_to %}
                                 <div style="display: flex; align-items: center; gap: 6px;">
                                     <span style="font-size: 1rem;">👷</span>
-                                    <span style="font-size: 0.85rem; font-weight: 600; color: var(--accent-color);">
+                                    <span style="font-size: 0.85rem; font-weight: 600; color: #3498db;">
                                         {{ request.assigned_to.get_full_name|default:request.assigned_to.username }}
                                     </span>
                                 </div>
@@ -103,13 +103,13 @@
                         </td>
 
                         <td class="actions-cell" style="padding: 15px 20px; text-align: center;">
-                            {% if request.status == 'pending' or not request.assigned_to %}
-                                <a href="{% url 'assign_maintenance' request.pk %}" class="btn btn-secondary btn-small">Assign</a>
-                            {% endif %}
-                            
-                            <a href="{% url 'edit_maintenance' request.pk %}" class="btn btn-primary btn-small">Edit</a>
-                            
-                            <a href="{% url 'delete_maintenance' request.pk %}" class="btn btn-danger btn-small">Delete</a>
+                            <div style="display: flex; gap: 5px; justify-content: center;">
+                                {% if request.status == 'pending' or not request.assigned_to %}
+                                    <a href="{% url 'assign_maintenance' request.pk %}" class="btn btn-secondary btn-small">Assign</a>
+                                {% endif %}
+                                <a href="{% url 'edit_maintenance' request.pk %}" class="btn btn-primary btn-small">Edit</a>
+                                <a href="{% url 'delete_maintenance' request.pk %}" class="btn btn-danger btn-small">Delete</a>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}
@@ -129,5 +129,6 @@
 
 <style>
     tr:hover { background: rgba(0,0,0,0.01) !important; }
+    .badge-info { background-color: #3498db; }
 </style>
 {% endblock %}

@@ -2,84 +2,117 @@
 {% block content %}
 
 <style>
+    /* ⭐ THE FIX: Override the 850px global table width just for this invoice */
+    #printable-invoice table {
+        min-width: 100% !important; 
+    }
+
     @media print {
-        /* 1. Hide EVERYTHING on the page by default (sidebar, header, background) */
-        body * {
-            visibility: hidden;
-        }
-        /* 2. Make ONLY the invoice card and its contents visible */
-        #printable-invoice, #printable-invoice * {
-            visibility: visible;
-        }
-        /* 3. Move the invoice to the absolute top-left of the paper */
+        body * { visibility: hidden; }
+        #printable-invoice, #printable-invoice * { visibility: visible; }
         #printable-invoice {
             position: absolute;
             left: 0;
             top: 0;
             width: 100%;
             margin: 0 !important;
-            padding: 20px !important;
+            padding: 30px !important;
             box-shadow: none !important;
             border: none !important;
         }
-        /* 4. Hide the print/back buttons so they don't show on paper */
-        .no-print {
-            display: none !important;
-        }
+        .no-print { display: none !important; }
     }
 </style>
 
 <div class="page-content active">
-    <div id="printable-invoice" class="card" style="max-width: 800px; margin: 0 auto; padding: 40px; background: white; color: black;">
-        <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #eee; padding-bottom: 20px;">
+    <div id="printable-invoice" class="card" style="max-width: 800px; margin: 20px auto; padding: 50px; background: white; color: black; box-sizing: border-box; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+        
+        <div style="display: flex; justify-content: space-between; border-bottom: 3px solid #34495e; padding-bottom: 25px;">
             <div>
-                <h1 style="margin: 0; color: #2c3e50;">INVOICE</h1>
-                <p style="margin: 5px 0; color: #7f8c8d;">Receipt #{{ payment.transaction_id|default:payment.pk }}</p>
+                <h1 style="margin: 0; color: #2c3e50; font-family: 'Playfair Display', serif; font-size: 2.5rem;">INVOICE</h1>
+                <p style="margin: 5px 0; color: #7f8c8d; font-weight: 600;">Receipt #{{ payment.transaction_id|default:payment.pk }}</p>
             </div>
             <div style="text-align: right;">
-                <h3 style="margin: 0;">Property Management</h3>
-                <p style="margin: 5px 0;">Date: {{ payment.date|date:"F d, Y" }}</p>
+                <h2 style="margin: 0; color: #2c3e50;">{{ payment.tenant.assigned_property.name|default:"Property Management" }}</h2>
+                <p style="margin: 5px 0; color: #7f8c8d;">{{ payment.tenant.assigned_property.location|default:"Nairobi, Kenya" }}</p>
+                <p style="margin: 5px 0; font-weight: bold;">Date: {{ payment.date|date:"F d, Y" }}</p>
             </div>
         </div>
         
-        <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+        <div style="margin-top: 40px; display: flex; justify-content: space-between;">
             <div>
-                <p style="color: #7f8c8d; margin-bottom: 5px;">Billed To:</p>
-                <h3 style="margin: 0;">{{ payment.tenant.user.get_full_name }}</h3>
-                <p style="margin: 5px 0;">{{ payment.tenant.assigned_property.name }} - Unit {{ payment.tenant.unit_number }}</p>
+                <p style="color: #7f8c8d; margin-bottom: 5px; text-transform: uppercase; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;">Billed To:</p>
+                <h3 style="margin: 0; color: #2c3e50;">{{ payment.tenant.user.get_full_name }}</h3>
+                <p style="margin: 5px 0; font-size: 1.1rem;">Unit: <strong>{{ payment.tenant.unit_number }}</strong></p>
                 <p style="margin: 5px 0;">{{ payment.tenant.user.phone_number }}</p>
+            </div>
+            <div style="text-align: right;">
+                <p style="color: #7f8c8d; margin-bottom: 5px; text-transform: uppercase; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;">Billing Period:</p>
+                <h3 style="margin: 0; color: #3498db;">{{ payment.get_for_month_display }} {{ payment.for_year }}</h3>
             </div>
         </div>
 
-        <table style="width: 100%; margin-top: 40px; border-collapse: collapse;">
+        <table style="width: 100%; margin-top: 50px; border-collapse: collapse;">
             <thead>
-                <tr style="background: #f8f9fa; border-bottom: 2px solid #ddd;">
-                    <th style="padding: 12px; text-align: left; color: black;">Description</th>
-                    <th style="padding: 12px; text-align: right; color: black;">Amount</th>
+                <tr style="background: #f8f9fa; border-top: 1px solid #dee2e6; border-bottom: 2px solid #34495e;">
+                    <th style="padding: 15px; text-align: left; color: #2c3e50; font-weight: 700;">Description</th>
+                    <th style="padding: 15px; text-align: right; color: #2c3e50; font-weight: 700;">Amount</th>
                 </tr>
             </thead>
             <tbody>
                 <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 12px; color: black;">Rent Payment - {{ payment.method|title }}</td>
-                    <td style="padding: 12px; text-align: right; color: black;">KES {{ payment.amount|floatformat:2 }}</td>
+                    <td style="padding: 20px 15px; color: #2c3e50; font-size: 1.1rem;">
+                        Rent Payment for <strong>{{ payment.get_for_month_display }} {{ payment.for_year }}</strong>
+                        <br>
+                        <small style="color: #7f8c8d;">Method: {{ payment.method|title }} | Ref: {{ payment.transaction_id }}</small>
+                    </td>
+                    <td style="padding: 20px 15px; text-align: right; color: #2c3e50; font-size: 1.2rem; font-weight: 600;">KES {{ payment.amount|floatformat:0 }}</td>
                 </tr>
             </tbody>
         </table>
 
-        <div style="margin-top: 40px; text-align: right;">
-            <h2 style="margin: 0;">Total Paid: KES {{ payment.amount|floatformat:2 }}</h2>
-            {% if payment.status == 'confirmed' %}
-                <p style="margin: 5px 0; font-weight: bold; color: #27ae60;">
-            {% else %}
-                <p style="margin: 5px 0; font-weight: bold; color: #e74c3c;">
-            {% endif %}
-                Status: {{ payment.status|upper }}
+        <div style="margin-top: 50px; display: flex; justify-content: flex-end;">
+            <div style="width: 350px; background: #f8f9fa; padding: 25px; border-radius: 8px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <span style="color: #7f8c8d; font-weight: 600;">Standard Monthly Rent:</span>
+                    <span style="color: #2c3e50; font-weight: 600;">KES {{ tenant.rent_amount|floatformat:0 }}</span>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; border-top: 2px solid #ddd; padding-top: 15px; margin-bottom: 15px;">
+                    {% if is_credit %}
+                        <span style="color: #27ae60; font-weight: 800; font-size: 1.1rem;">Total Credit Balance:</span>
+                        <span style="color: #27ae60; font-weight: 800; font-size: 1.1rem;">KES {{ display_balance|floatformat:0 }}</span>
+                    {% else %}
+                        <span style="color: #e74c3c; font-weight: 800; font-size: 1.1rem;">Remaining Arrears:</span>
+                        <span style="color: #e74c3c; font-weight: 800; font-size: 1.1rem;">KES {{ display_balance|floatformat:0 }}</span>
+                    {% endif %}
+                </div>
+                
+                <div style="text-align: right; margin-top: 10px;">
+                    <span style="padding: 6px 15px; border-radius: 50px; font-size: 0.8rem; font-weight: 900; letter-spacing: 1px;
+                        {% if payment.status == 'confirmed' %} background: #27ae60; color: white; {% else %} background: #e67e22; color: white; {% endif %}">
+                        {{ payment.status|upper }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 60px; text-align: center; border-top: 1px dashed #ddd; padding-top: 30px;">
+            <p style="color: #34495e; font-size: 1rem; line-height: 1.6;">
+                {% if is_credit %}
+                     Thank you for your excess payment. It has been recorded as a credit for your future rent.
+                {% elif tenant.balance == 0 %}
+                     Your account is fully settled for <strong>{{ payment.get_for_month_display }}</strong>. We appreciate your promptness!
+                {% else %}
+                     Please note an outstanding balance of <strong>KES {{ display_balance|floatformat:0 }}</strong> remains on your account.
+                {% endif %}
             </p>
+            <p style="margin-top: 20px; font-size: 0.8rem; color: #bdc3c7;">This is a computer-generated document and remains valid as an official receipt upon payment confirmation.</p>
         </div>
 
         <div style="margin-top: 50px; text-align: center;" class="no-print">
-            <button onclick="window.print()" class="btn btn-primary" style="margin-right: 10px;">Print Invoice</button>
-            <a href="{% url 'payments' %}" class="btn btn-secondary" style="text-decoration: none;">Back to Payments</a>
+            <button onclick="window.print()" class="btn btn-primary" style="padding: 12px 30px; font-weight: 700; margin-right: 15px; cursor: pointer;">🖨️ Print Invoice</button>
+            <a href="{% url 'payments' %}" class="btn btn-secondary" style="padding: 12px 30px; text-decoration: none; font-weight: 600;">← Back</a>
         </div>
     </div>
 </div>

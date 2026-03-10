@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const darkModeBtn = document.getElementById("darkModeBtn");
     const darkModeIcon = document.getElementById("darkModeIcon");
     const darkModeText = document.getElementById("darkModeText");
-    const themeToggle = document.getElementById("themeToggle"); // 👈 The Settings Switch
+    const themeToggle = document.getElementById("themeToggle"); //  The Settings Switch
 
     // --- 1. THEME LOGIC ---
     function applyTheme(dark) {
@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // ⭐ NEW: Settings Toggle Listener
+    //  NEW: Settings Toggle Listener
     if (themeToggle) {
         themeToggle.addEventListener("change", function() {
             // If checked, it's light mode. If unchecked, it's dark mode.

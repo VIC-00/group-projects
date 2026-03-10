@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-container px-4">
+    <div class="mb-4" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h1 style="font-family: 'Playfair Display', serif; margin: 0; font-size: 1.5rem;">Work History</h1>
+            <p class="text-muted" style="margin: 0;">Archive of all resolved maintenance tasks</p>
+        </div>
+
+        <form method="GET" style="display: flex; gap: 8px;">
+            <input type="text" name="q" value="{{ query|default:'' }}" 
+                   placeholder="Search unit or issue..." 
+                   style="padding: 8px 15px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); outline: none;">
+            <button type="submit" class="btn-small" style="background: #3498db !important; color: white !important; border: none; padding: 8px 15px; cursor: pointer;">
+                Search
+            </button>
+            {% if query %}
+                <a href="{% url 'maintenance_work_history' %}" class="btn-small" style="background: var(--bg-primary) !important; color: var(--text-secondary) !important; border: 1px solid var(--border-color); display: flex; align-items: center;">Clear</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden; background: var(--bg-secondary); border: 1px solid var(--border-color) !important;">
+        <div class="table-responsive">
+            <table class="table mb-0" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: rgba(0,0,0,0.02); border-bottom: 2px solid var(--border-color);">
+                        <th style="padding: 15px 20px; text-align: left; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Date Resolved</th>
+                        <th style="padding: 15px 20px; text-align: left; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Property / Unit</th>
+                        <th style="padding: 15px 20px; text-align: left; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Issue & Category</th>
+                        <th style="padding: 15px 20px; text-align: left; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Service Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in history %}
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 20px;">
+                            <div style="font-weight: 700; color: var(--text-primary);">{{ task.date_resolved|date:"M d, Y" }}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">{{ task.date_resolved|time:"H:i" }}</div>
+                        </td>
+                        <td style="padding: 20px;">
+                            <div style="font-weight: 600;">{{ task.tenant.assigned_property.name }}</div>
+                            <div style="font-size: 0.85rem; color: #3498db; font-weight: 700;">Unit {{ task.tenant.unit_number }}</div>
+                        </td>
+                        <td style="padding: 20px;">
+                            <div style="font-weight: 600;">{{ task.issue }}</div>
+                            {% if task.category %}
+                                <span style="font-size: 10px; text-transform: uppercase; background: rgba(52, 152, 219, 0.1); color: #3498db; padding: 2px 8px; border-radius: 4px; font-weight: 800;">
+                                    {{ task.category }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 20px;">
+                            <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); max-width: 300px; line-height: 1.4;">
+                                {{ task.tech_notes|default:"No notes provided." }}
+                            </p>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="padding: 60px; text-align: center; color: var(--text-secondary);">
+                            No resolved tasks found in your archive.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-small { border-radius: 6px; font-weight: 700; text-decoration: none; transition: 0.2s; }
+    .btn-small:hover { opacity: 0.9; transform: translateY(-1px); }
+    tr:hover { background: rgba(52, 152, 219, 0.02); }
+</style>
+{% endblock %}

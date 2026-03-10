@@ -8,14 +8,14 @@
                 {% if edit_mode %}📝 Edit Payment{% else %}💰 Record New Payment{% endif %}
             </h2>
             <p style="margin: 5px 0 0; font-size: 0.85rem; color: var(--text-secondary);">
-                Enter payment details to automatically update the tenant's balance.
+                Tag this payment to a specific month to sync the monthly ledger.
             </p>
         </div>
         
         <div class="card-body" style="padding: 30px;">
             {% if form.errors %}
                 <div style="background: rgba(231, 76, 60, 0.1); color: #e74c3c; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.85rem; border: 1px solid rgba(231, 76, 60, 0.2);">
-                    <strong>Oops!</strong> Please check the fields below for errors.
+                    <strong>Validation Error:</strong> Please check the required fields below.
                 </div>
             {% endif %}
 
@@ -26,10 +26,16 @@
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label style="display:block; margin-bottom:8px; font-weight:600; color: var(--text-primary); font-size: 0.9rem;">
                         {{ field.label }}
+                        {% if field.field.required %}<span style="color: #e74c3c;">*</span>{% endif %}
                     </label>
                     <div class="custom-form-input">
                         {{ field }}
                     </div>
+                    {% if field.help_text %}
+                        <small style="color: var(--text-secondary); display: block; margin-top: 5px; font-size: 0.75rem;">
+                            {{ field.help_text }}
+                        </small>
+                    {% endif %}
                     {% if field.errors %}
                         <small style="color: #e74c3c; display: block; margin-top: 5px; font-weight: 600; font-size: 0.75rem;">
                             {{ field.errors.0 }}
@@ -38,11 +44,17 @@
                 </div>
                 {% endfor %}
 
-                <div style="display: flex; gap: 12px; margin-top: 25px;">
-                    <button type="submit" class="btn btn-primary" style="flex: 2; padding: 12px; background: #3498db; border: none; font-weight: 700; box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);">
+                <div style="background: rgba(52, 152, 219, 0.1); border-left: 4px solid #3498db; padding: 15px; border-radius: 6px; margin-top: 10px; margin-bottom: 25px;">
+                    <small style="color: var(--text-primary); display: block; font-size: 0.8rem; line-height: 1.4;">
+                        <strong>Note:</strong> Confirmed payments will automatically reduce the tenant's total arrears or increase their available credit.
+                    </small>
+                </div>
+
+                <div style="display: flex; gap: 12px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 2; padding: 12px; background: #3498db; border: none; font-weight: 700; box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2); cursor: pointer; border-radius: 8px; color: white;">
                         {% if edit_mode %}Update Transaction{% else %}Save Transaction{% endif %}
                     </button>
-                    <a href="{% url 'payments' %}" class="btn btn-secondary" style="flex: 1; text-decoration:none; text-align: center; padding: 12px; display: flex; align-items: center; justify-content: center;">
+                    <a href="{% url 'payments' %}" class="btn btn-secondary" style="flex: 1; text-decoration:none; text-align: center; padding: 12px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color);">
                         Cancel
                     </a>
                 </div>
@@ -52,7 +64,7 @@
 </div>
 
 <style>
-    /* 🛠️ Dark Mode Input & Dropdown Styling */
+    /* Clean Dark Mode Styling */
     .custom-form-input input, 
     .custom-form-input select, 
     .custom-form-input textarea {
@@ -66,28 +78,27 @@
         font-size: 0.95rem;
         box-sizing: border-box;
         transition: border-color 0.2s;
-        appearance: none;
-        -webkit-appearance: none;
     }
 
-    /* Fix for the white background in select options */
+    /* Fixed white select options for dark mode */
     .custom-form-input select option {
         background-color: #1a1a1a; 
         color: white;
-    }
-
-    /* Custom dropdown arrow for better UX */
-    .custom-form-input select {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23ffffff' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: calc(100% - 15px) center;
-        padding-right: 40px;
     }
 
     .custom-form-input input:focus, .custom-form-input select:focus {
         border-color: #3498db;
         outline: none;
         background: rgba(255,255,255,0.05) !important;
+    }
+
+    /* Custom dropdown arrow to match theme */
+    .custom-form-input select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23ffffff' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: calc(100% - 15px) center;
+        padding-right: 40px;
     }
 </style>
 {% endblock %}

@@ -64,12 +64,15 @@ urlpatterns = [
     # ==========================================================================
     path('maintenance/dashboard/', views.maintenance_dashboard, name='maintenance_dashboard'),
     path('maintenance/task/<int:pk>/update/', views.update_task, name='update_task'),
+    path('maintenance/history/', views.maintenance_work_history, name='maintenance_work_history'),
 
     # ==========================================================================
     # --- 8. WORKFLOWS & APPROVALS (LOGIC PATHS) ---
     # ==========================================================================
     # Staff Approvals
     path('maintenance/staff/', views.manage_staff, name='manage_staff'),
+    path('maintenance/staff/add/', views.add_staff, name='add_staff'),
+    path('maintenance/staff/remove/<int:pk>/', views.remove_staff, name='remove_staff'),
     path('maintenance/staff/approve/<int:pk>/', views.approve_staff, name='approve_staff'),
     path('maintenance/staff/reject/<int:pk>/', views.reject_staff, name='reject_staff'),
     

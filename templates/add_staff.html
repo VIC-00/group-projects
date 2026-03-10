@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-container px-4">
+    <div class="mb-3 pt-4">
+        <a href="{% url 'manage_staff' %}" style="text-decoration: none; color: #3498db; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">
+            ← Back to Staff Management
+        </a>
+    </div>
+
+    <div class="card" style="max-width: 580px; margin: 0 auto 40px auto; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-secondary); box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
+        
+        <div class="card-header" style="padding: 25px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 15px;">
+            <div style="height: 48px; width: 48px; background: rgba(52, 152, 219, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem;">
+                👷‍♂️
+            </div>
+            <div>
+                <h2 style="font-family: 'Playfair Display', serif; color: var(--text-primary); margin: 0; font-size: 1.4rem;">
+                    Onboard New Staff
+                </h2>
+                <p class="text-muted" style="font-size: 0.85rem; margin: 0;">Register a technician to your maintenance team.</p>
+            </div>
+        </div>
+
+        <div class="card-body" style="padding: 30px;">
+            <div style="background: rgba(52, 152, 219, 0.05); border-left: 4px solid #3498db; padding: 18px; border-radius: 8px; margin-bottom: 25px;">
+                <p style="margin: 0; color: var(--text-primary); font-size: 0.85rem; line-height: 1.6;">
+                    <strong>Auto-Password Logic:</strong><br>
+                    The technician's <strong>Phone Number</strong> will be set as their initial password. They will be required to change it immediately upon their first login.
+                </p>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                <div class="form-group" style="margin-bottom: 22px;">
+                    <label style="display: block; font-weight: 700; margin-bottom: 8px; color: var(--text-primary); font-size: 0.9rem; letter-spacing: 0.3px;">
+                        {{ field.label }}
+                        {% if field.field.required %}<span style="color: #e74c3c;">*</span>{% endif %}
+                    </label>
+                    
+                    <div class="custom-input-wrapper">
+                        {{ field }}
+                    </div>
+
+                    {% if field.errors %}
+                        <div style="color: #e74c3c; font-size: 0.75rem; margin-top: 6px; font-weight: 600;">
+                            ⚠️ {{ field.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <div style="display: flex; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 25px; margin-top: 10px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 2; padding: 12px; font-weight: 700; background: #3498db; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                        Create Staff Account
+                    </button>
+                    <a href="{% url 'manage_staff' %}" class="btn btn-secondary" 
+                       style="flex: 1; text-decoration: none; padding: 12px; display: flex; align-items: center; justify-content: center; background: var(--bg-primary); color: var(--text-secondary); border: 1px solid var(--border-color); font-size: 0.9rem; font-weight: 600; border-radius: 8px;">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .custom-input-wrapper input, 
+    .custom-input-wrapper select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        border-radius: 8px;
+        font-size: 0.95rem;
+        outline: none;
+        transition: all 0.2s;
+    }
+
+    .custom-input-wrapper input:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .btn-primary:hover {
+        background: #2980b9 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
+    }
+</style>
+{% endblock %}

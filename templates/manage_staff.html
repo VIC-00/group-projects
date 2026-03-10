@@ -2,79 +2,129 @@
 
 {% block content %}
 <div class="dashboard-container px-4">
-    <h1 style="font-family: 'Playfair Display', serif; margin-bottom: 25px;">Staff Management</h1>
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h1 style="font-family: 'Playfair Display', serif; margin: 0; color: var(--text-primary);">Staff Management</h1>
+            <p class="text-muted" style="margin: 0; font-size: 0.9rem;">Manage technician approvals and team directory.</p>
+        </div>
+        
+        <a href="{% url 'add_staff' %}" class="btn-add-staff" style="text-decoration: none; background: #3498db; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 700; display: flex; align-items: center; gap: 10px; transition: all 0.2s; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);">
+            <span style="font-size: 1.3rem; line-height: 1;">+</span> Onboard Staff
+        </a>
+    </div>
 
     {% if pending_staff %}
-    <div class="card mb-5 border-0 shadow-sm" style="border-radius: 12px; border-left: 5px solid #f1c40f;">
-        <div class="card-header bg-white p-3">
-            <h3 style="font-size: 1.1rem; margin: 0; color: #d35400;">⚠️ Pending Approvals</h3>
+    <div class="card mb-5 border-0 shadow-sm" style="border-radius: 12px; border-left: 5px solid #f1c40f; background: var(--bg-secondary);">
+        <div class="card-header bg-transparent p-4 border-0">
+            <h3 style="font-size: 1.1rem; margin: 0; color: #d35400; font-weight: 700;">Pending Approvals</h3>
+            <small class="text-muted">New applications awaiting review.</small>
         </div>
         <div class="card-body p-0">
-            <table class="table mb-0" style="width: 100%;">
-                <thead class="bg-light">
-                    <tr>
-                        <th class="p-3">Name</th>
-                        <th class="p-3">Email/Phone</th>
-                        <th class="p-3">Specialization</th>
-                        <th class="p-3 text-end">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for staff in pending_staff %}
-                    <tr style="border-top: 1px solid var(--border-color);">
-                        <td class="p-3"><strong>{{ staff.get_full_name }}</strong></td>
-                        <td class="p-3">{{ staff.email }}<br><small>{{ staff.phone_number }}</small></td>
-                        <td class="p-3">
-                            <span class="badge badge-info">
-                                {{ staff.specialization|default:"General Maintenance" }}
-                            </span>
-                        </td>
-                        <td class="p-3 text-end">
-                            <a href="{% url 'approve_staff' staff.pk %}" class="btn btn-primary btn-small" style="background: #27ae60; border: none;">Approve ✅</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table mb-0" style="width: 100%; border-collapse: collapse;">
+                    <thead style="background: rgba(0,0,0,0.03);">
+                        <tr>
+                            <th class="p-3 text-start">Name</th>
+                            <th class="p-3 text-start">Email/Phone</th>
+                            <th class="p-3 text-start">Specialization</th>
+                            <th class="p-3 text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for staff in pending_staff %}
+                        <tr class="staff-row" style="border-top: 1px solid var(--border-color);">
+                            <td class="p-3"><strong style="color: var(--text-primary);">{{ staff.get_full_name }}</strong></td>
+                            <td class="p-3" style="color: var(--text-secondary); font-size: 0.9rem;">{{ staff.email }}<br><small style="color: var(--accent-color);">{{ staff.phone_number }}</small></td>
+                            <td class="p-3">
+                                <span class="badge" style="background: rgba(52, 152, 219, 0.1); color: #3498db; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem;">
+                                    {{ staff.specialization|default:"General Maintenance" }}
+                                </span>
+                            </td>
+                            <td class="p-3 text-end">
+                                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                                    <form action="{% url 'approve_staff' staff.pk %}" method="POST">{% csrf_token %}<button type="submit" class="btn-action approve">Approve</button></form>
+                                    <form action="{% url 'reject_staff' staff.pk %}" method="POST">{% csrf_token %}<button type="submit" class="btn-action reject">Reject</button></form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
     {% endif %}
 
-    <div class="card border-0 shadow-sm" style="border-radius: 12px;">
-        <div class="card-header bg-white p-3">
-            <h3 style="font-size: 1.1rem; margin: 0;">Active Maintenance Team</h3>
+    <div class="card border-0 shadow-sm" style="border-radius: 12px; background: var(--bg-secondary); border: 1px solid var(--border-color) !important;">
+        <div class="card-header bg-transparent p-4 border-0">
+            <h3 style="font-size: 1.1rem; margin: 0; color: var(--text-primary); font-weight: 700;">Active Maintenance Team</h3>
+            <small class="text-muted">Verified staff members assigned to your properties.</small>
         </div>
-        <div class="card-body p-0">
-            <table class="table mb-0" style="width: 100%;">
-                <thead class="bg-light">
-                    <tr>
-                        <th class="p-3">Staff Member</th>
-                        <th class="p-3">Specialization</th>
-                        <th class="p-3">Current Jobs</th>
-                        <th class="p-3 text-end">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for staff in active_staff %}
-                    <tr style="border-top: 1px solid var(--border-color);">
-                        <td class="p-3">
-                            <div style="font-weight: 600;">{{ staff.get_full_name }}</div>
-                            <small class="text-muted">@{{ staff.username }}</small>
-                        </td>
-                        <td class="p-3">{{ staff.specialization|default:"General Maintenance" }}</td>
-                        <td class="p-3">
-                            <span class="text-muted">Active</span>
-                        </td>
-                        <td class="p-3 text-end">
-                            <span class="badge badge-success">Verified</span>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="4" class="p-5 text-center text-muted">No active staff members found.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+        <div class="card-body" style="padding: 0;">
+            {% if active_staff %}
+            <div class="table-responsive">
+                <table class="table mb-0" style="width: 100%; border-collapse: collapse;">
+                    <thead style="background: rgba(0,0,0,0.03);">
+                        <tr>
+                            <th class="p-3 text-start" style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 1px;">Staff Member</th>
+                            <th class="p-3 text-start" style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 1px;">Specialization</th>
+                            <th class="p-3 text-start" style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 1px;">Role</th>
+                            <th class="p-3 text-end" style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 1px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for staff in active_staff %}
+                        <tr class="staff-row" style="border-top: 1px solid var(--border-color);">
+                            <td class="p-3">
+                                <div style="font-weight: 700; color: var(--text-primary);">{{ staff.get_full_name }}</div>
+                                <small class="text-muted" style="font-family: monospace;">@{{ staff.username }}</small>
+                            </td>
+                            <td class="p-3" style="color: var(--text-secondary); font-weight: 500;">{{ staff.specialization|default:"General Maintenance" }}</td>
+                            <td class="p-3"><span class="badge" style="background: var(--bg-primary); color: var(--text-secondary); border: 1px solid var(--border-color); font-size: 0.7rem; font-weight: 700;">TECHNICIAN</span></td>
+                            <td class="p-3 text-end">
+                                <div style="display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
+                                    <span style="font-size: 0.8rem; font-weight: 700; color: #2ecc71; background: rgba(46, 204, 113, 0.1); padding: 5px 12px; border-radius: 20px;">Verified</span>
+                                    
+                                    <a href="{% url 'remove_staff' staff.pk %}" class="btn-remove" style="text-decoration: none;">Remove</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 80px 20px;">
+                <div style="font-size: 4rem; margin-bottom: 20px; opacity: 0.8;">👥</div>
+                <h3 style="color: var(--text-primary); margin-bottom: 8px; font-family: 'Playfair Display', serif;">No Team Members Found</h3>
+                <p style="max-width: 350px; margin: 0 auto; line-height: 1.6; color: var(--text-secondary);">You haven't approved any applications or onboarded staff yet.</p>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
+
+<style>
+    .table-responsive { overflow-x: auto; }
+    .staff-row:hover { background: rgba(52, 152, 219, 0.02); }
+    .btn-add-staff:hover { background: #2980b9 !important; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(52, 152, 219, 0.3); }
+    .btn-action { padding: 8px 16px; border: none; border-radius: 6px; font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: 0.2s; text-transform: uppercase; }
+    .btn-action.approve { background: #27ae60; color: white; }
+    .btn-action.reject { background: #e74c3c; color: white; }
+    
+    .btn-remove {
+        background: transparent;
+        border: 1px solid #e74c3c;
+        color: #e74c3c;
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-remove:hover { background: #e74c3c; color: white; }
+</style>
 {% endblock %}

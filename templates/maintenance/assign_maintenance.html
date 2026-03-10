@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="dashboard-container px-4">
-    <div class="card" style="max-width: 550px; margin: 30px auto; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: none;">
+    <div class="card" style="max-width: 550px; margin: 30px auto; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: none; background: var(--bg-secondary);">
         
         <div class="card-header" style="background: var(--bg-secondary); padding: 25px; border-bottom: 1px solid var(--border-color);">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 5px;">
@@ -12,7 +12,7 @@
                 </h2>
             </div>
             <div style="padding-left: 38px;">
-                <p style="margin: 0; font-weight: 700; color: var(--accent-color); font-size: 0.9rem;">
+                <p style="margin: 0; font-weight: 700; color: #3498db; font-size: 0.9rem;">
                     Task #{{ task.id }}: {{ task.issue }}
                 </p>
                 <p class="text-muted" style="font-size: 0.85rem; margin-top: 5px;">
@@ -27,11 +27,21 @@
                 
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); font-size: 0.9rem;">
+                        Identify Category
+                    </label>
+                    {{ form.category }}
+                    <small class="text-muted" style="display: block; margin-top: 6px; font-size: 0.75rem;">
+                        Helps generate accurate expenditure reports.
+                    </small>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); font-size: 0.9rem;">
                         Select Maintenance Staff
                     </label>
                     {{ form.assigned_to }}
                     <small class="text-muted" style="display: block; margin-top: 6px; font-size: 0.75rem;">
-                        Only users with the "Maintenance" role appear here.
+                        Only active staff on your team appear here.
                     </small>
                 </div>
 
@@ -43,7 +53,7 @@
                 </div>
 
                 <div style="display: flex; gap: 12px; margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 25px;">
-                    <button type="submit" class="btn btn-primary" style="flex: 2; padding: 12px; font-weight: 600;">
+                    <button type="submit" class="btn btn-primary" style="flex: 2; padding: 12px; font-weight: 700;">
                         Confirm Assignment
                     </button>
                     <a href="{% url 'maintenance' %}" class="btn btn-secondary" 
@@ -61,16 +71,20 @@
     .form-group select {
         width: 100%;
         padding: 12px 14px;
-        border: 1px solid var(--input-border);
-        background: var(--input-bg);
+        border: 1px solid var(--border-color);
+        background: var(--bg-primary);
         color: var(--text-primary);
         border-radius: 8px;
         font-size: 0.95rem;
         outline: none;
         transition: border 0.2s;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23999' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: calc(100% - 15px) center;
     }
     .form-group select:focus {
-        border-color: var(--accent-color);
+        border-color: #3498db;
         box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
     }
 </style>

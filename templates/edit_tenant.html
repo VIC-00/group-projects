@@ -1,27 +1,106 @@
 {% extends 'base.html' %}
+
 {% block content %}
 <div class="page-content active">
-    <div class="card" style="max-width: 700px; margin: 0 auto;">
-        <div class="card-header">
-            <h2>👤 Edit Tenant: {{ tenant.user.get_full_name }}</h2>
+    <div class="card shadow-sm" style="max-width: 700px; margin: 0 auto; border-radius: 12px; border: none; background: var(--bg-primary);">
+        <div class="card-header" style="background: var(--bg-secondary); padding: 20px; border-bottom: 1px solid var(--border-color);">
+            <h2 style="margin: 0; font-family: 'Playfair Display', serif; font-size: 1.5rem;">👤 Edit Tenant: {{ tenant.user.get_full_name }}</h2>
+            <p style="margin: 5px 0 0; font-size: 0.85rem; color: var(--text-secondary);">Update residency details and contact information.</p>
         </div>
-        <div class="card-body">
+        
+        <div class="card-body" style="padding: 30px;">
             <form method="POST">
                 {% csrf_token %}
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     {% for field in form %}
-                        <div class="form-group">
-                            <label>{{ field.label }}</label>
+                    <div class="form-group">
+                        <label style="display:block; margin-bottom:8px; font-weight:600; font-size: 0.85rem; color: var(--text-primary);">
+                            {{ field.label }}
+                            {% if field.field.required %}
+                                <span style="color: #e74c3c;">*</span>
+                            {% else %}
+                                <span style="color: var(--text-secondary); font-size: 0.7rem; font-weight: 400; margin-left: 5px;">(Optional)</span>
+                            {% endif %}
+                        </label>
+                        <div class="custom-form-field">
                             {{ field }}
                         </div>
+                        {% if field.errors %}
+                            <div style="color: #e74c3c; font-size: 0.75rem; margin-top: 5px; font-weight: 600;">
+                                {{ field.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
                     {% endfor %}
                 </div>
-                <div style="margin-top: 20px; display: flex; gap: 10px;">
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                    <a href="{% url 'tenants' %}" class="btn btn-secondary" style="text-decoration:none;">Cancel</a>
+
+                <div style="background: rgba(46, 204, 113, 0.1); border-left: 4px solid #2ecc71; padding: 15px; border-radius: 6px; margin-top: 25px; margin-bottom: 25px;">
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-primary); line-height: 1.4;">
+                        <strong>📊 Ledger Sync:</strong> Changing the <strong>Rent Amount</strong> or <strong>Move-in Date</strong> will trigger an immediate recalculation of the tenant's entire balance history.
+                    </p>
+                </div>
+
+                <div style="display: flex; gap: 12px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 2; padding: 12px; font-weight: 700; border-radius: 8px; background: #3498db; color: white; border: none; cursor: pointer;">
+                        Save Changes
+                    </button>
+                    <a href="{% url 'tenants' %}" class="btn btn-secondary" style="flex: 1; text-decoration:none; text-align: center; padding: 12px; border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color);">
+                        Cancel
+                    </a>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<style>
+    /* Date Input Visibility in Dark Mode */
+    [data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        cursor: pointer;
+    }
+
+    .custom-form-field input, 
+    .custom-form-field select, 
+    .custom-form-field textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-secondary) !important;
+        color: var(--text-primary) !important;
+        font-family: inherit;
+        font-size: 0.95rem;
+        box-sizing: border-box;
+    }
+
+    /* select options styling */
+    .custom-form-field select option {
+        background-color: #1a1a1a; 
+        color: white;
+    }
+
+    /* Dropdown arrow override */
+    .custom-form-field select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23ffffff' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: calc(100% - 15px) center;
+        padding-right: 40px;
+    }
+
+    .custom-form-field input:focus, 
+    .custom-form-field select:focus {
+        border-color: #3498db;
+        outline: none;
+    }
+
+    /* Mobile Responsive Grid */
+    @media (max-width: 600px) {
+        div[style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
 {% endblock %}
